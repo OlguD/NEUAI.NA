@@ -1,5 +1,6 @@
-REM filepath: /Users/olgudegirmenci/Desktop/NEUAI.NA/run_app.bat
 @echo off
+cd NEUAI.NA
+
 :: Activate the virtual environment
 call venv\Scripts\activate
 
@@ -12,7 +13,6 @@ python app.py || (
 
 :: Open the application in the default web browser
 start http://127.0.0.1:5000
-
 
 echo Script execution complete.
 pause
