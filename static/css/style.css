@@ -1,0 +1,32 @@
+body {
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.container {
+    text-align: center;
+}
+.video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 20px;
+}
+.video-container img {
+    border: 2px solid #007bff;
+    border-radius: 10px;
+}
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+#analysis-result {
+    margin-top: 20px;
+    text-align: left;
+}
