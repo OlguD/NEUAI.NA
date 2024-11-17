@@ -4,4 +4,3 @@ face_recognition
 easyocr
 torch
 Flask
-
