@@ -1,5 +1,7 @@
 opencv-python
 numpy
 face_recognition
-easyocr>=1.7.0
-torch>=2.0.0
+easyocr
+torch
+Flask
+
