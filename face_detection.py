@@ -6,10 +6,11 @@ import time
 from face_similarity import calculate_face_similarity
 import logging
 import sys
+import numpy as np  
+
 
 # Configuration
 CASCADE_PATH = "/Users/olgudegirmenci/Desktop/NEUAI.NA/core/haarcascade_frontalface_default.xml"
-IMAGE2_PATH = '/Users/olgudegirmenci/Desktop/NEUAI.NA/core/IMG_1546.jpg'
 VIDEO_SOURCE = 0  # or your video source
 
 # Setup logging
@@ -38,37 +39,29 @@ def show_frame(frame):
         return False
     return True
 
-def detect_face(camera_frame):
-    gray_camera = cv.cvtColor(camera_frame, cv.COLOR_BGR2GRAY)
-    face_classifier = cv.CascadeClassifier(CASCADE_PATH)
-    faces = face_classifier.detectMultiScale(
-        gray_camera, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40)
-    )
-    for (x, y, w, h) in faces:
-        cv.rectangle(camera_frame, (x, y), (x + w, y + h), (0, 0, 255), 4)
-    img_rgb = cv.cvtColor(camera_frame, cv.COLOR_BGR2RGB)
-    return img_rgb
-
-def main():
-    capture = capture_video(VIDEO_SOURCE)
-    while True:
-        try:
-            frame = get_frame(capture)
-            if frame is not None:
-                detect_face(frame)
-                # similarity = calculate_face_similarity(frame, IMAGE2_PATH)
-                # if similarity is not None:
-                #     print(f"Face similarity score: {similarity}")
-                #     break
-                if not show_frame(frame):
-                    break
-        except AttributeError as e:
-            logging.error(f"AttributeError: {e}")
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            break
-    capture.release()
-    cv.destroyAllWindows()
-
-# if __name__ == '__main__':
-#     main()
+def detect_face(frame):
+    """Görüntüde yüz tespiti yapar"""
+    try:
+        # Cascade sınıflandırıcıyı yükle
+        face_cascade = cv.CascadeClassifier(cv.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        
+        # Gri tonlamaya çevir
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        
+        # Yüz tespiti yap
+        faces = face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=cv.CASCADE_SCALE_IMAGE
+        )
+        
+        # Sonuçları logla
+        logging.info(f"Tespit edilen yüz sayısı: {len(faces) if isinstance(faces, np.ndarray) else 0}")
+        
+        return faces
+        
+    except Exception as e:
+        logging.error(f"Yüz tespiti hatası: {str(e)}")
+        return None
