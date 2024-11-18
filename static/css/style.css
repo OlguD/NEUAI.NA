@@ -1,32 +1,213 @@
-body {
-    background-color: #f8f9fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #1e40af;
+    --success-color: #16a34a;
+    --danger-color: #dc2626;
+    --background-color: #f8fafc;
+    --card-background: #ffffff;
+    --text-color: #1e293b;
+    --border-radius: 12px;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
 .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header {
     text-align: center;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
 }
+
+.header h1 {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.header p {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.video-section {
+    background: var(--card-background);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
 .video-container {
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    background: #0f172a;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-image {
+    width: 100%;
+    height: 100%;
+    background-color: #1e293b;
     display: flex;
-    justify-content: center;
     align-items: center;
-    flex-direction: column;
-    margin-top: 20px;
-}
-.video-container img {
-    border: 2px solid #007bff;
-    border-radius: 10px;
-}
-.button-container {
-    display: flex;
     justify-content: center;
+    color: #94a3b8;
+    font-size: 1.1rem;
     gap: 10px;
-    margin-top: 20px;
+    border-radius: var(--border-radius);
 }
-#analysis-result {
-    margin-top: 20px;
-    text-align: left;
+
+#videoFeed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(110%);
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-start {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-stop {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-analyze {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.results-section {
+    background: var(--card-background);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    height: fit-content;
+}
+
+.results-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-item {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: calc(var(--border-radius) - 4px);
+    margin-top: 1rem;
+}
+
+.result-item p {
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.score {
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    background: #e0e7ff;
+    border-radius: 999px;
+}
+
+.error-message {
+    color: var(--danger-color);
+    background: #fee2e2;
+    padding: 1rem;
+    border-radius: calc(var(--border-radius) - 4px);
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .container {
+        margin: 1rem auto;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        width: 100%;
+    }
 }
