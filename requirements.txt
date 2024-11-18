@@ -1,6 +1,8 @@
 opencv-python
 numpy
-face_recognition
 easyocr
 torch
 Flask
+python-dotenv
+deepface
+tf-keras
