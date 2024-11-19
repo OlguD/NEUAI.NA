@@ -30,7 +30,7 @@ setup(
             'neuai=neuai.app:main',
         ],
     },
-    python_requires='>=3.11',
+    python_requires='>=3.10',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Education',
