@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="NEUAI.NA",
+    name="neuai",
     version="1.0.0",
     description="NEU Face and Document Recognition System",
     author="Olgu DEĞİRMENCİ, Atakan UZUN",
@@ -27,7 +27,7 @@ setup(
     # },
     entry_points={
         'console_scripts': [
-            'NEUAI.NA=app:main',
+            'neuai=neuai.app:main',
         ],
     },
     python_requires='>=3.11',
