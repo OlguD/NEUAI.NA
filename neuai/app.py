@@ -2,19 +2,19 @@ from flask import Flask, render_template, Response, jsonify
 import cv2 as cv
 import numpy as np
 import logging
-from face_new_similarity import (FaceTracker, REFERENCE_IMAGE_PATH, 
+from neuai.face_new_similarity import (FaceTracker, REFERENCE_IMAGE_PATH, 
     convert_to_vector, normalize_vector, detect_face, cosine_similarity, euclidean_distance,
     interpret_similarity)
 import easyocr
-from document_detection import preprocess_image, extract_info
-from face_detection import detect_face, capture_video, get_frame
-from detect_object import detect_object_type, detect_document_features
+from neuai.document_detection import preprocess_image, extract_info
+from neuai.face_detection import detect_face, capture_video, get_frame
+from neuai.detect_object import detect_object_type, detect_document_features
 from datetime import datetime
 
 app = Flask(__name__)
 
 # Configuration
-CASCADE_PATH = "/Users/olgudegirmenci/Desktop/NEUAI.NA/core/haarcascade_frontalface_default.xml"
+CASCADE_PATH = "C:/Users/Atakan/Documents/projects/final/github/NEUAI.NA/neuai/core/haarcascade_frontalface_default.xml"
 VIDEO_SOURCE = 0
 
 # Setup logging
@@ -85,7 +85,8 @@ def analyze_document_frame(frame):
         return {"error": str(e)}
 
 def generate_frames():
-    capture = capture_video(VIDEO_SOURCE)
+    #capture = capture_video(VIDEO_SOURCE)# mac
+    capture = cv.VideoCapture(0)# windows
     face_tracker = FaceTracker()
     object_detected = False  # Nesne tespit durumunu kontrol eden bayrak
 
@@ -94,6 +95,7 @@ def generate_frames():
             frame = get_frame(capture)
             if frame is None:
                 break
+            frame = cv.flip(frame, 1)
 
             # İlk çerçevede nesne tespiti yap
             if not object_detected:
@@ -118,8 +120,8 @@ def generate_frames():
             ret, buffer = cv.imencode('.jpg', frame, [cv.IMWRITE_JPEG_QUALITY, 85])
             if ret:
                 frame_bytes = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                yield (b'--frame/r/n'
+                       b'Content-Type: image/jpeg/r/n/r/n' + frame_bytes + b'/r/n')
 
     except Exception as e:
         logging.error(f"Frame üretme hatası: {e}")
@@ -133,7 +135,11 @@ def index():
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    stream = generate_frames()
+    if stream:
+        return Response(stream, 
+                       mimetype='multipart/x-mixed-replace; boundary=frame')
+    return "Kamera başlatılamadı", 500
 
 @app.route('/detect_object')
 def detect_object():
@@ -190,10 +196,10 @@ def document_analysis():
             
             # try:
             #     with open(filename, 'w', encoding='utf-8') as f:
-            #         f.write("=== STUDENT INFORMATION ===\n")
+            #         f.write("=== STUDENT INFORMATION ===/n")
             #         for key, value in result.items():
             #             if value:
-            #                 f.write(f"{key}: {value}\n")
+            #                 f.write(f"{key}: {value}/n")
             # except Exception as e:
             #     logging.error(f"Dosya kayıt hatası: {str(e)}")
         

@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 import logging
-from face_detection import detect_face
+from neuai.face_detection import detect_face
 
 def check_face_detection(faces):
     try:

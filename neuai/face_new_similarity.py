@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 from deepface import DeepFace
 import logging
-from face_detection import detect_face, capture_video, get_frame
+from neuai.face_detection import detect_face, capture_video, get_frame
 from collections import deque
 
 # Temel ayarlar
@@ -10,7 +10,7 @@ COSINE_THRESHOLD = 0.4
 EUCLIDEAN_THRESHOLD = 15.0
 STABILITY_QUEUE_SIZE = 5
 MIN_DETECTION_CONFIDENCE = 0.7
-REFERENCE_IMAGE_PATH = "/Users/olgudegirmenci/Desktop/NEUAI.NA/core/olgu.jpg"
+REFERENCE_IMAGE_PATH = "C:/Users/Atakan/Documents/projects/final/github/NEUAI.NA/neuai/core/atakan.jpeg"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 

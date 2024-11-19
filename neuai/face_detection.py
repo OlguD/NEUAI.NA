@@ -3,33 +3,53 @@
 import cv2 as cv
 from threading import Thread
 import time
-from face_similarity import calculate_face_similarity
 import logging
 import sys
 import numpy as np  
 
 
 # Configuration
-CASCADE_PATH = "/Users/olgudegirmenci/Desktop/NEUAI.NA/core/haarcascade_frontalface_default.xml"
+CASCADE_PATH = "C:/Users/Atakan/Documents/projects/final/github/NEUAI.NA/neuai/core/haarcascade_frontalface_default.xml"
 VIDEO_SOURCE = 0  # or your video source
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def capture_video(src):
-    capture = cv.VideoCapture(src)
-    if not capture.isOpened():
-        logging.error(f"Error opening video source: {src}")
-        sys.exit(1)
-    capture.set(cv.CAP_PROP_BUFFERSIZE, 2)
-    return capture
+def capture_video(source=0):
+    """Kamera bağlantısını başlatır"""
+    try:
+        # DirectShow backend'i kullan
+        capture = cv.VideoCapture(source, cv.CAP_DSHOW)
+        
+        if not capture.isOpened():
+            logging.error("Kamera açılamadı")
+            return None
+            
+        # Kamera ayarları
+        capture.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+        capture.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+        capture.set(cv.CAP_PROP_FPS, 30)
+        
+        return capture
+        
+    except Exception as e:
+        logging.error(f"Kamera başlatma hatası: {e}")
+        return None
 
 def get_frame(capture):
-    ret, frame = capture.read()
-    if not ret:
-        logging.warning("Failed to capture frame")
+    """Kameradan frame alır"""
+    try:
+        success, frame = capture.read()
+        if not success:
+            logging.warning("Failed to capture frame")
+            return None
+            
+        # Frame'i yatay çevir
+        return cv.flip(frame, 1)
+        
+    except Exception as e:
+        logging.error(f"Frame alma hatası: {e}")
         return None
-    return frame
 
 def show_frame(frame):
     frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
@@ -65,3 +85,42 @@ def detect_face(frame):
     except Exception as e:
         logging.error(f"Yüz tespiti hatası: {str(e)}")
         return None
+    
+#def main():
+    # Video kaynağını başlat
+    logging.info("Video kaynağı başlatılıyor...")
+    capture = capture_video(VIDEO_SOURCE)
+    
+    logging.info("Video kaynağı başarıyla başlatıldı. Çıkmak için 'q' tuşuna basın.")
+    
+    try:
+        while True:
+            # Kareyi al
+            frame = get_frame(capture)
+            if frame is None:
+                break
+            
+            # Yüz tespiti yap
+            faces = detect_face(frame)
+            
+            # Yüz tespit edilen alanları çerçeve ile işaretle
+            if faces is not None:
+                for (x, y, w, h) in faces:
+                    cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            
+            # Kareyi ekranda göster
+            if not show_frame(frame):
+                break
+    except KeyboardInterrupt:
+        logging.info("Klavye kesintisi algılandı. Uygulama sonlandırılıyor...")
+    except Exception as e:
+        logging.error(f"Bir hata oluştu: {str(e)}")
+    finally:
+        # Kaynakları serbest bırak
+        logging.info("Kaynaklar serbest bırakılıyor...")
+        capture.release()
+        cv.destroyAllWindows()
+        logging.info("Uygulama kapatıldı.")
+
+#if __name__ == "__main__":
+    main()
