@@ -88,7 +88,6 @@ def generate_frames():
             return
             
         face_tracker = FaceTracker()
-        object_detected = False
         
         try:
             while True:
@@ -98,24 +97,24 @@ def generate_frames():
                     
                 frame = cv.flip(frame, 1)
 
-                if not object_detected:
-                    obj_type, confidence, obj_data = detect_object_type(frame)
-                    object_detected = True
-                else:
-                    obj_type, confidence, obj_data = "unknown", 0.0, None
+                # Nesne tespiti yap
+                obj_type, confidence, obj_data = detect_object_type(frame)
 
                 if obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0:
-                    for (x, y, w, h) in obj_data:
+                    # FaceTracker ile yüz konumunu güncelle
+                    tracked_box = face_tracker.update(frame, obj_data)
+                    
+                    if tracked_box is not None:
+                        x, y, w, h = tracked_box
+                        # Yumuşatılmış çerçeveyi çiz
                         cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        cv.putText(frame, "Face", (x, y-10),
-                                   cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
+                                
                 elif obj_type == "document" and obj_data is not None:
                     cv.drawContours(frame, [obj_data], -1, (0, 255, 0), 2)
-                    cv.putText(frame, "Document", (10, 30),
-                               cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    # Belge tespit edildiğinde tracker'ı sıfırla
+                    face_tracker = FaceTracker()
 
-                ret, buffer = cv.imencode('.jpg', frame)
+                ret, buffer = cv.imencode('.jpg', frame, [cv.IMWRITE_JPEG_QUALITY, 85])
                 if ret:
                     frame_bytes = buffer.tobytes()
                     yield (b'--frame\r\n'
