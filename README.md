@@ -41,19 +41,25 @@ In the project of designing and developing a controlled access system for univer
 
 ### OR direct download the package
 
-1. Create and activate a virtual environment:
+1. Clone this project:
+    ```bash
+    git clone https://github.com/OlguD/NEUAI.NA.git
+    cd NEUAI.NA
+    ```
+
+2. Create and activate a virtual environment:
     ```bash
     python -m venv venv
     source venv/bin/activate  # MacOS/Linux
     venv\Scripts\activate  # Windows
     ```
 
-2. Install project
+3. Install project
     ```bash
     pip install .
     ````
 
-3. Run the project
+4. Run the project
     ```bash
     neuai
     ```
