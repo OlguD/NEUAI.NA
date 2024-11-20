@@ -9,7 +9,7 @@ from neuai.face_new_similarity import (FaceTracker, convert_to_vector,
 import easyocr
 from neuai.document_detection import preprocess_image, extract_info
 from neuai.detect_object import detect_object_type
-from neuai.CameraManager import camera_session
+from neuai.CameraManager import CameraManagerSingleton
 from dotenv import load_dotenv
 import os
 
@@ -83,45 +83,44 @@ def analyze_document_frame(frame):
         return {"error": str(e)}
 
 def generate_frames():
-    with camera_session() as cam:
-        if cam is None:
-            return
-            
-        face_tracker = FaceTracker()
+    camera = CameraManagerSingleton()
+    if not camera.start():
+        return
         
-        try:
-            while True:
-                success, frame = cam.read_frame()
-                if not success:
-                    break
-                    
-                frame = cv.flip(frame, 1)
+    face_tracker = FaceTracker()
+    
+    try:
+        while True:
+            success, frame = camera.read_frame()
+            if not success:
+                continue
+                
+            frame = cv.flip(frame, 1)
 
-                # Nesne tespiti yap
-                obj_type, confidence, obj_data = detect_object_type(frame)
+            obj_type, confidence, obj_data = detect_object_type(frame)
 
-                if obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0:
-                    # FaceTracker ile yüz konumunu güncelle
-                    tracked_box = face_tracker.update(frame, obj_data)
-                    
-                    if tracked_box is not None:
-                        x, y, w, h = tracked_box
-                        # Yumuşatılmış çerçeveyi çiz
-                        cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                                
-                elif obj_type == "document" and obj_data is not None:
-                    cv.drawContours(frame, [obj_data], -1, (0, 255, 0), 2)
-                    # Belge tespit edildiğinde tracker'ı sıfırla
-                    face_tracker = FaceTracker()
+            if obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0:
+                tracked_box = face_tracker.update(frame, obj_data)
+                
+                if tracked_box is not None:
+                    x, y, w, h = tracked_box
+                    cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                            
+            elif obj_type == "document" and obj_data is not None:
+                cv.drawContours(frame, [obj_data], -1, (0, 255, 0), 2)
+                face_tracker = FaceTracker()
 
+            try:
                 ret, buffer = cv.imencode('.jpg', frame, [cv.IMWRITE_JPEG_QUALITY, 85])
                 if ret:
                     frame_bytes = buffer.tobytes()
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-
-        except Exception as e:
-            logging.error(f"Frame üretme hatası: {e}")
+            except Exception as e:
+                logging.error(f"Frame encoding error: {str(e)}")
+                continue
+    finally:
+        camera.stop()
 
 @app.route('/')
 def index():
@@ -129,19 +128,17 @@ def index():
 
 @app.route('/video_feed')
 def video_feed():
-    stream = generate_frames()
-    if stream:
-        return Response(stream, 
-                       mimetype='multipart/x-mixed-replace; boundary=frame')
-    return "Kamera başlatılamadı", 500
+    return Response(generate_frames(),
+                   mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/detect_object')
 def detect_object():
-    with camera_session() as cam:
-        if cam is None:
-            return jsonify({"error": "Could not access camera"})
-            
-        success, frame = cam.read_frame()
+    camera = CameraManagerSingleton()
+    if not camera.start():
+        return jsonify({"error": "Could not access camera"})
+        
+    try:
+        success, frame = camera.read_frame()
         if not success:
             return jsonify({"error": "Could not read frame"})
             
@@ -150,45 +147,44 @@ def detect_object():
             "type": object_type,
             "confidence": float(confidence)
         })
+    finally:
+        camera.stop()
 
 @app.route('/analyze_face')
 def analyze_face():
+    camera = CameraManagerSingleton()
+    if not camera.start():
+        return jsonify({"error": "Could not access camera"})
+        
     try:
-        with camera_session() as cam:
-            if cam is None:
-                return jsonify({"error": "Could not access camera"})
-                
-            success, frame = cam.read_frame()
-            if not success:
-                return jsonify({"error": "Could not read frame"})
-                
-            result = analyze_face_similarity(frame, os.getenv("IMAGE2_PATH"))
-            return jsonify(result)
-    except Exception as e:
-        logging.error(f"Analiz hatası: {str(e)}")
-        return jsonify({"error": str(e)})
+        success, frame = camera.read_frame()
+        if not success:
+            return jsonify({"error": "Could not read frame"})
+            
+        result = analyze_face_similarity(frame, os.getenv("IMAGE2_PATH"))
+        return jsonify(result)
+    finally:
+        camera.stop()
 
 @app.route('/document_analysis')
 def document_analysis():
+    camera = CameraManagerSingleton()
+    if not camera.start():
+        return jsonify({"error": "Could not access camera"})
+        
     try:
-        with camera_session() as cam:
-            if cam is None:
-                return jsonify({"error": "Could not access camera"})
-                
-            success, frame = cam.read_frame()
-            if not success:
-                return jsonify({"error": "Could not read frame"})
-                
-            result = analyze_document_frame(frame)
+        success, frame = camera.read_frame()
+        if not success:
+            return jsonify({"error": "Could not read frame"})
             
-            if "error" not in result:
-                logging.info(f"Belge analiz sonucu: {result}")
-            
-            return jsonify(result)
-            
-    except Exception as e:
-        logging.error(f"Belge analiz endpoint hatası: {str(e)}")
-        return jsonify({"error": str(e)})
+        result = analyze_document_frame(frame)
+        
+        if "error" not in result:
+            logging.info(f"Belge analiz sonucu: {result}")
+        
+        return jsonify(result)
+    finally:
+        camera.stop()
 
 def main():
     """Flask sunucusunu başlatmak için bir giriş noktası."""
