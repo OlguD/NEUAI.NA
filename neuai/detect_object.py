@@ -98,7 +98,7 @@ def detect_object_type(frame):
             if max_area > 0:
                 frame_area = frame.shape[0] * frame.shape[1]
                 confidence = max_area / frame_area
-                logging.info(f"Yüz alanı: {max_area}, Frame alanı: {frame_area}, Güven: {confidence}")
+                # logging.info(f"Yüz alanı: {max_area}, Frame alanı: {frame_area}, Güven: {confidence}")
                 return "face", float(confidence), faces
 
         # Yüz yoksa belge kontrolü yap

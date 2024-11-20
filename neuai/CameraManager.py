@@ -36,10 +36,6 @@ class CameraManager:
                 logging.error(f"Failed to open camera on devices {self.device_id} and {alt_device}")
                 return False
                 
-            # Configure camera
-            self.camera.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-            self.camera.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
-            self.camera.set(cv.CAP_PROP_FPS, 30)
             return True
             
         except Exception as e:

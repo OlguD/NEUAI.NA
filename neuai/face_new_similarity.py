@@ -10,7 +10,6 @@ COSINE_THRESHOLD = 0.4
 EUCLIDEAN_THRESHOLD = 15.0
 STABILITY_QUEUE_SIZE = 5
 MIN_DETECTION_CONFIDENCE = 0.7
-REFERENCE_IMAGE_PATH = "C:/Users/Atakan/Documents/projects/final/github/NEUAI.NA/neuai/core/atakan.jpeg"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
@@ -194,9 +193,9 @@ def interpret_similarity(cos_sim, euc_dist):
         similarity_score = (weighted_cos * 0.8) + (weighted_euc * 0.2)
         
         # Yorumla
-        if similarity_score >= 0.95:
+        if similarity_score >= 0.85:
             interpretation = "Aynı kişi (Çok yüksek benzerlik)"
-        elif similarity_score >= 0.85:
+        elif similarity_score >= 0.80:
             interpretation = "Büyük olasılıkla aynı kişi"
         elif similarity_score >= 0.75:
             interpretation = "Benzer özellikler mevcut"
