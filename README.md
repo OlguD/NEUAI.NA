@@ -8,13 +8,12 @@ In the project of designing and developing a controlled access system for univer
 - Face recognition and detection
 - Calculating similarity between two faces
 - Comparing an image from the camera with an image in the database
+- Document analysis
+- Document detection
 
 ## Requirements
 
 - Python 3.11+
-- `opencv-python`
-- `face_recognition`
-- `numpy`
 
 ## Installation
 
@@ -36,15 +35,25 @@ In the project of designing and developing a controlled access system for univer
     pip install -r requirements.txt
     ```
 
-4. Install the project:
+4. Run project:
+    ```python
+    python neuai/app.py
+
+### OR direct download the package
+
+1. Create and activate a virtual environment:
     ```bash
-    python setup.py install
+    python -m venv venv
+    source venv/bin/activate  # MacOS/Linux
+    venv\Scripts\activate  # Windows
     ```
 
-## Usage
+2. Install project
+    ```bash
+    pip install .
+    ````
 
-### Face Recognition and Similarity Calculation
-
-To run the application, use the following command:
-```bash
-face_detection
+3. Run the project
+    ```bash
+    neuai
+    ```

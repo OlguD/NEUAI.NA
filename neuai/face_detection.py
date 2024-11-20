@@ -6,11 +6,14 @@ import time
 import logging
 import sys
 import numpy as np  
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # Configuration
-CASCADE_PATH = "C:/Users/Atakan/Documents/projects/final/github/NEUAI.NA/neuai/core/haarcascade_frontalface_default.xml"
-VIDEO_SOURCE = 0  # or your video source
+CASCADE_PATH = os.getenv("CASCADE_PATH")
+VIDEO_SOURCE = int(os.getenv("VIDEO_SOURCE", 0))
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,11 +22,11 @@ def capture_video(source=0):
     """Kamera bağlantısını başlatır"""
     try:
         # DirectShow backend'i kullan
-        capture = cv.VideoCapture(source, cv.CAP_DSHOW)
-        
+        capture = cv.VideoCapture(VIDEO_SOURCE)
         if not capture.isOpened():
-            logging.error("Kamera açılamadı")
-            return None
+            logging.error(f"Kamera açılamadı: {VIDEO_SOURCE}")
+        else:
+            logging.info("Kamera başarıyla açıldı.")
             
         # Kamera ayarları
         capture.set(cv.CAP_PROP_FRAME_WIDTH, 640)
@@ -86,41 +89,41 @@ def detect_face(frame):
         logging.error(f"Yüz tespiti hatası: {str(e)}")
         return None
     
-#def main():
-    # Video kaynağını başlat
-    logging.info("Video kaynağı başlatılıyor...")
-    capture = capture_video(VIDEO_SOURCE)
+# def main():
+#     # Video kaynağını başlat
+#     logging.info("Video kaynağı başlatılıyor...")
+#     capture = capture_video(VIDEO_SOURCE)
     
-    logging.info("Video kaynağı başarıyla başlatıldı. Çıkmak için 'q' tuşuna basın.")
+#     logging.info("Video kaynağı başarıyla başlatıldı. Çıkmak için 'q' tuşuna basın.")
     
-    try:
-        while True:
-            # Kareyi al
-            frame = get_frame(capture)
-            if frame is None:
-                break
+#     try:
+#         while True:
+#             # Kareyi al
+#             frame = get_frame(capture)
+#             if frame is None:
+#                 break
             
-            # Yüz tespiti yap
-            faces = detect_face(frame)
+#             # Yüz tespiti yap
+#             faces = detect_face(frame)
             
-            # Yüz tespit edilen alanları çerçeve ile işaretle
-            if faces is not None:
-                for (x, y, w, h) in faces:
-                    cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+#             # Yüz tespit edilen alanları çerçeve ile işaretle
+#             if faces is not None:
+#                 for (x, y, w, h) in faces:
+#                     cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             
-            # Kareyi ekranda göster
-            if not show_frame(frame):
-                break
-    except KeyboardInterrupt:
-        logging.info("Klavye kesintisi algılandı. Uygulama sonlandırılıyor...")
-    except Exception as e:
-        logging.error(f"Bir hata oluştu: {str(e)}")
-    finally:
-        # Kaynakları serbest bırak
-        logging.info("Kaynaklar serbest bırakılıyor...")
-        capture.release()
-        cv.destroyAllWindows()
-        logging.info("Uygulama kapatıldı.")
+#             # Kareyi ekranda göster
+#             if not show_frame(frame):
+#                 break
+#     except KeyboardInterrupt:
+#         logging.info("Klavye kesintisi algılandı. Uygulama sonlandırılıyor...")
+#     except Exception as e:
+#         logging.error(f"Bir hata oluştu: {str(e)}")
+#     finally:
+#         # Kaynakları serbest bırak
+#         logging.info("Kaynaklar serbest bırakılıyor...")
+#         capture.release()
+#         cv.destroyAllWindows()
+#         logging.info("Uygulama kapatıldı.")
 
-#if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

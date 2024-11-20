@@ -54,6 +54,6 @@ setup(
     },
     include_package_data=True,
     project_urls={
-        'Source': 'https://github.com/OlguD/neuai-recognition',
+        'Source': 'https://github.com/OlguD/NEUAI.NA',
     },
 )

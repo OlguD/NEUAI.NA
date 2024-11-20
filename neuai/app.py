@@ -2,20 +2,20 @@ from flask import Flask, render_template, Response, jsonify
 import cv2 as cv
 import numpy as np
 import logging
-from neuai.face_new_similarity import (FaceTracker, REFERENCE_IMAGE_PATH, 
-    convert_to_vector, normalize_vector, detect_face, cosine_similarity, euclidean_distance,
-    interpret_similarity)
+from datetime import datetime
+from neuai.face_new_similarity import (FaceTracker, convert_to_vector, 
+    normalize_vector, detect_face, cosine_similarity,
+    euclidean_distance, interpret_similarity)
 import easyocr
 from neuai.document_detection import preprocess_image, extract_info
-from neuai.face_detection import detect_face, capture_video, get_frame
-from neuai.detect_object import detect_object_type, detect_document_features
-from datetime import datetime
+from neuai.detect_object import detect_object_type
+from neuai.CameraManager import camera_session
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
-
-# Configuration
-CASCADE_PATH = "C:/Users/Atakan/Documents/projects/final/github/NEUAI.NA/neuai/core/haarcascade_frontalface_default.xml"
-VIDEO_SOURCE = 0
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -34,11 +34,9 @@ def analyze_face_similarity(frame, reference_img_path):
         normalized_reference_vector = normalize_vector(reference_vector)
         
         faces = detect_face(frame)
-        # NumPy array kontrolünü düzelt
         if not isinstance(faces, np.ndarray) or faces.size == 0:
             return {"error": "Yüz tespit edilemedi"}
 
-        # En büyük yüzü seç
         face = max(faces, key=lambda rect: rect[2] * rect[3])
         x, y, w, h = map(int, face)
         face_crop = frame[y:y+h, x:x+w]
@@ -85,49 +83,46 @@ def analyze_document_frame(frame):
         return {"error": str(e)}
 
 def generate_frames():
-    #capture = capture_video(VIDEO_SOURCE)# mac
-    capture = cv.VideoCapture(0)# windows
-    face_tracker = FaceTracker()
-    object_detected = False  # Nesne tespit durumunu kontrol eden bayrak
+    with camera_session() as cam:
+        if cam is None:
+            return
+            
+        face_tracker = FaceTracker()
+        object_detected = False
+        
+        try:
+            while True:
+                success, frame = cam.read_frame()
+                if not success:
+                    break
+                    
+                frame = cv.flip(frame, 1)
 
-    try:
-        while True:
-            frame = get_frame(capture)
-            if frame is None:
-                break
-            frame = cv.flip(frame, 1)
+                if not object_detected:
+                    obj_type, confidence, obj_data = detect_object_type(frame)
+                    object_detected = True
+                else:
+                    obj_type, confidence, obj_data = "unknown", 0.0, None
 
-            # İlk çerçevede nesne tespiti yap
-            if not object_detected:
-                obj_type, confidence, obj_data = detect_object_type(frame)
-                object_detected = True  # Nesne tespitini yalnızca bir kez yap
-            else:
-                obj_type, confidence, obj_data = "unknown", 0.0, None  # Tespiti durdur
+                if obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0:
+                    for (x, y, w, h) in obj_data:
+                        cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                        cv.putText(frame, "Face", (x, y-10),
+                                   cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-            # Tespit edilen nesneye göre çizim yap
-            if obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0:
-                for (x, y, w, h) in obj_data:
-                    cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                    cv.putText(frame, "Face", (x, y-10),
-                               cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                elif obj_type == "document" and obj_data is not None:
+                    cv.drawContours(frame, [obj_data], -1, (0, 255, 0), 2)
+                    cv.putText(frame, "Document", (10, 30),
+                               cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-            elif obj_type == "document" and obj_data is not None:
-                cv.drawContours(frame, [obj_data], -1, (0, 255, 0), 2)
-                cv.putText(frame, "Document", (10, 30),
-                           cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                ret, buffer = cv.imencode('.jpg', frame)
+                if ret:
+                    frame_bytes = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
-            # Frame'i gönder
-            ret, buffer = cv.imencode('.jpg', frame, [cv.IMWRITE_JPEG_QUALITY, 85])
-            if ret:
-                frame_bytes = buffer.tobytes()
-                yield (b'--frame/r/n'
-                       b'Content-Type: image/jpeg/r/n/r/n' + frame_bytes + b'/r/n')
-
-    except Exception as e:
-        logging.error(f"Frame üretme hatası: {e}")
-    finally:
-        capture.release()
-
+        except Exception as e:
+            logging.error(f"Frame üretme hatası: {e}")
 
 @app.route('/')
 def index():
@@ -143,37 +138,33 @@ def video_feed():
 
 @app.route('/detect_object')
 def detect_object():
-    try:
-        capture = capture_video(VIDEO_SOURCE)
-        frame = get_frame(capture)
-        if frame is not None:
-            object_type, confidence, _ = detect_object_type(frame)
-            capture.release()
+    with camera_session() as cam:
+        if cam is None:
+            return jsonify({"error": "Could not access camera"})
             
-            response = {
-                "type": object_type,
-                "confidence": float(confidence)
-            }
-            logging.info(f"Tespit sonucu: {response}")  # Log ekle
-            return jsonify(response)
+        success, frame = cam.read_frame()
+        if not success:
+            return jsonify({"error": "Could not read frame"})
             
-        capture.release()
-        return jsonify({"error": "Frame alınamadı"})
-    except Exception as e:
-        logging.error(f"Tespit hatası: {str(e)}")
-        return jsonify({"error": str(e)})
+        object_type, confidence, _ = detect_object_type(frame)
+        return jsonify({
+            "type": object_type,
+            "confidence": float(confidence)
+        })
 
 @app.route('/analyze_face')
 def analyze_face():
     try:
-        capture = capture_video(VIDEO_SOURCE)
-        frame = get_frame(capture)
-        if frame is not None:
-            result = analyze_face_similarity(frame, REFERENCE_IMAGE_PATH)
-            capture.release()
+        with camera_session() as cam:
+            if cam is None:
+                return jsonify({"error": "Could not access camera"})
+                
+            success, frame = cam.read_frame()
+            if not success:
+                return jsonify({"error": "Could not read frame"})
+                
+            result = analyze_face_similarity(frame, os.getenv("IMAGE2_PATH"))
             return jsonify(result)
-        capture.release()
-        return jsonify({"error": "Frame alınamadı"})
     except Exception as e:
         logging.error(f"Analiz hatası: {str(e)}")
         return jsonify({"error": str(e)})
@@ -181,34 +172,28 @@ def analyze_face():
 @app.route('/document_analysis')
 def document_analysis():
     try:
-        capture = capture_video(VIDEO_SOURCE)
-        frame = get_frame(capture)
-        
-        if frame is None:
-            return jsonify({"error": "Görüntü alınamadı"})
+        with camera_session() as cam:
+            if cam is None:
+                return jsonify({"error": "Could not access camera"})
+                
+            success, frame = cam.read_frame()
+            if not success:
+                return jsonify({"error": "Could not read frame"})
+                
+            result = analyze_document_frame(frame)
             
-        result = analyze_document_frame(frame)
-        
-        if "error" not in result:
-            logging.info(f"Belge analiz sonucu: {result}")
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"student_info_{timestamp}.txt"
+            if "error" not in result:
+                logging.info(f"Belge analiz sonucu: {result}")
             
-            # try:
-            #     with open(filename, 'w', encoding='utf-8') as f:
-            #         f.write("=== STUDENT INFORMATION ===/n")
-            #         for key, value in result.items():
-            #             if value:
-            #                 f.write(f"{key}: {value}/n")
-            # except Exception as e:
-            #     logging.error(f"Dosya kayıt hatası: {str(e)}")
-        
-        capture.release()
-        return jsonify(result)
-        
+            return jsonify(result)
+            
     except Exception as e:
         logging.error(f"Belge analiz endpoint hatası: {str(e)}")
         return jsonify({"error": str(e)})
 
-if __name__ == '__main__':
+def main():
+    """Flask sunucusunu başlatmak için bir giriş noktası."""
     app.run(debug=True)
+
+if __name__ == '__main__':
+    main()

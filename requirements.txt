@@ -4,3 +4,4 @@ face_recognition
 easyocr
 torch
 Flask
+python-dotenv
