@@ -13,7 +13,7 @@ In the project of designing and developing a controlled access system for univer
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.10+
 
 ## Installation
 
