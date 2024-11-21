@@ -82,10 +82,10 @@ def detect_object_type(frame):
     try:
         # Yüz tespiti
         faces = detect_face(frame)
-        logging.info(f"Tespit edilen yüzler: {faces}")  # Debug için
+        # logging.info(f"Tespit edilen yüzler: {faces}")  # Debug için
 
         if faces is not None and len(faces) > 0:
-            logging.info("Yüz tespit edildi!")
+            # logging.info("Yüz tespit edildi!")
             # En büyük yüzü bul
             max_area = 0
             for face in faces:
@@ -124,7 +124,7 @@ def detect_object_type(frame):
         if is_document:
             frame_area = frame.shape[0] * frame.shape[1]
             confidence = max_area / frame_area
-            logging.info(f"Belge tespit edildi. Alan: {max_area}, Güven: {confidence}")
+            # logging.info(f"Belge tespit edildi. Alan: {max_area}, Güven: {confidence}")
             return "document", float(confidence), document_contour
 
         logging.info("Nesne tespit edilemedi")

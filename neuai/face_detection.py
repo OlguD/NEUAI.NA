@@ -81,7 +81,7 @@ def detect_face(frame):
         )
         
         # Sonuçları logla
-        logging.info(f"Tespit edilen yüz sayısı: {len(faces) if isinstance(faces, np.ndarray) else 0}")
+        # logging.info(f"Tespit edilen yüz sayısı: {len(faces) if isinstance(faces, np.ndarray) else 0}")
         
         return faces
         
@@ -103,16 +103,21 @@ def detect_face(frame):
 #             if frame is None:
 #                 break
             
+#             # Kopya kare oluştur (örneğin bulanıklaştırma için)
+#             blurred_img = frame.copy()
+            
 #             # Yüz tespiti yap
 #             faces = detect_face(frame)
             
-#             # Yüz tespit edilen alanları çerçeve ile işaretle
+#             # Yüz tespit edilen alanları işaretle
 #             if faces is not None:
 #                 for (x, y, w, h) in faces:
-#                     cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+#                     # Tespit edilen yüzü işaretle ve bulanıklaştır
+#                     detected_face = blurred_img[y:y+h, x:x+w]
+#                     cv.rectangle(blurred_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             
 #             # Kareyi ekranda göster
-#             if not show_frame(frame):
+#             if not show_frame(blurred_img):  # Orijinal kare yerine işlenmiş kareyi göster
 #                 break
 #     except KeyboardInterrupt:
 #         logging.info("Klavye kesintisi algılandı. Uygulama sonlandırılıyor...")
