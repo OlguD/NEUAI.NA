@@ -7,6 +7,12 @@ const faceAnalyzeButton = document.getElementById('faceAnalyzeButton');
 const documentAnalyzeButton = document.getElementById('documentAnalyzeButton');
 const detectionMessage = document.getElementById('detectionMessage');
 const similarityResults = document.getElementById('similarityResults');
+const loadingAnimation = document.getElementById('loadingAnimation');
+const resetButton = document.getElementById('resetButton');
+const controlsSecondary = document.querySelector('.controls-secondary');
+
+let schoolNumber;
+let documentAnalysisResults = null;
 
 // Durum değişkenleri
 let isVideoRunning = false;
@@ -16,14 +22,51 @@ let detectionInterval = null;
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // hideLoadingAnimation();
     startButton.addEventListener('click', startVideo);
     stopButton.addEventListener('click', stopVideo);
     faceAnalyzeButton.addEventListener('click', analyzeFace);
     documentAnalyzeButton.addEventListener('click', analyzeDocument);
+    resetButton.addEventListener('click', resetAnalysis);
+
+    resetButton.style.display = 'none';
 });
 
+function showLoadingAnimation() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.style.display = 'flex';
+    }
+}
+
+function hideLoadingAnimation() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+}
+
+function resetAnalysis() {
+    // Tüm analiz sonuçlarını ve durum değişkenlerini sıfırla
+    schoolNumber = null;
+    documentAnalysisResults = null;
+    similarityResults.innerHTML = '<div class="result-item"><p>No analysis has been done yet</p></div>';
+    
+    // Butonları sıfırla
+    faceAnalyzeButton.classList.remove('active');
+    documentAnalyzeButton.classList.remove('active');
+    faceAnalyzeButton.disabled = true;
+    documentAnalyzeButton.disabled = true;
+    
+    // Reset butonunu gizle
+    resetButton.style.display = 'none';
+    
+    // Mesajı güncelle
+    showMessage('Analysis results have been reset. You can start a new analysis.');
+}
+
 function startVideo() {
-    console.log("Video başlatılıyor...");
+    console.log("Starting Stream...");
     isVideoRunning = true;
     isObjectDetected = false;
     currentObjectType = null;
@@ -34,6 +77,10 @@ function startVideo() {
     
     startButton.style.display = 'none';
     stopButton.style.display = 'inline-flex';
+
+    resetButton.style.display = 'inline-flex';
+
+    controlsSecondary.style.display = 'flex';
     
     // Butonları sıfırla
     faceAnalyzeButton.disabled = true;
@@ -44,7 +91,7 @@ function startVideo() {
 }
 
 function stopVideo() {
-    console.log("Video durduruluyor...");
+    console.log("Stoping Stream...");
     isVideoRunning = false;
     isObjectDetected = false;
     currentObjectType = null;
@@ -59,45 +106,48 @@ function stopVideo() {
     // Butonları devre dışı bırak
     faceAnalyzeButton.disabled = true;
     documentAnalyzeButton.disabled = true;
-    
-    // Sonuçları temizle
-    detectionMessage.innerHTML = '';
-    similarityResults.innerHTML = '<div class="result-item"><p>Henüz analiz yapılmadı</p></div>';
+
+    controlsSecondary.style.display = 'none';
 }
 
-async function detectObject() {
+function detectObject() {
     if (!isVideoRunning) return;
 
-    try {
-        const response = await fetch('/detect_object');
-        const data = await response.json();
-        console.log("Tespit sonucu:", data);
+    fetch('/detect_object')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error("Detection Error:", data.error);
+                if (isVideoRunning) setTimeout(detectObject, 500);
+                return;
+            }
 
-        if (data.error) {
-            console.error("Tespit hatası:", data.error);
+            if (data.type === 'face') {
+                currentObjectType = 'face';
+                faceAnalyzeButton.disabled = false;
+                documentAnalyzeButton.disabled = true;
+                faceAnalyzeButton.classList.add('active');
+                documentAnalyzeButton.classList.remove('active');
+                showMessage('Face detected - You can analyze the face');
+            }
+            else if (data.type === 'document') {
+                currentObjectType = 'document';
+                documentAnalyzeButton.disabled = false;
+                faceAnalyzeButton.disabled = true;
+                documentAnalyzeButton.classList.add('active');
+                faceAnalyzeButton.classList.remove('active');
+                showMessage('Document detected - You can analyze the document');
+            }
+            else {
+                faceAnalyzeButton.classList.remove('active');
+                documentAnalyzeButton.classList.remove('active');
+                if (isVideoRunning) setTimeout(detectObject, 500);
+            }
+        })
+        .catch(error => {
+            console.error("Detection Error:", error);
             if (isVideoRunning) setTimeout(detectObject, 500);
-            return;
-        }
-
-        if (data.type === 'face') {
-            currentObjectType = 'face';
-            faceAnalyzeButton.disabled = false;
-            documentAnalyzeButton.disabled = true;
-            showMessage('Yüz tespit edildi - Yüz analizi yapabilirsiniz');
-        }
-        else if (data.type === 'document') {
-            currentObjectType = 'document';
-            documentAnalyzeButton.disabled = false;
-            faceAnalyzeButton.disabled = true;
-            showMessage('Belge tespit edildi - Belge analizi yapabilirsiniz');
-        }
-        else {
-            if (isVideoRunning) setTimeout(detectObject, 500);
-        }
-    } catch (error) {
-        console.error("Tespit hatası:", error);
-        if (isVideoRunning) setTimeout(detectObject, 500);
-    }
+        });
 }
 
 function showMessage(text) {
@@ -114,33 +164,64 @@ function showMessage(text) {
 async function analyzeFace() {
     if (!isVideoRunning || currentObjectType !== 'face') return;
     
+    // Önceki belge analizi sonuçlarını sakla
+    const previousResults = similarityResults.innerHTML;
+    
+    // Loading göster
+    similarityResults.innerHTML = `
+        <div class="loading-container">
+            <div class="loader"></div>
+            <span>Face analysis in progress...</span>
+        </div>
+    `;
+    
     try {
         const response = await fetch('/analyze_face');
         const data = await response.json();
         
+        let newResultsHtml = '';
+        
         if (data.error) {
-            similarityResults.innerHTML = `
+            newResultsHtml = `
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
                     ${data.error}
                 </div>
             `;
-            return;
+        } else {
+            newResultsHtml = `
+                <div class="result-item">
+                    <h3>Face Analysis Results</h3>
+                    <p>Similarity Score: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
+                    <p>Cosine Similarty: <span class="score">${data.cosine_similarity.toFixed(3)}</span></p>
+                    <p>Euclidean Distance: <span class="score">${data.euclidean_distance.toFixed(3)}</span></p>
+                    <p>Result: <span class="score">${data.interpretation}</span></p>
+                </div>
+            `;
         }
         
-        similarityResults.innerHTML = `
-            <div class="result-item">
-                <p>Benzerlik Skoru: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
-                <p>Cosine Benzerliği: <span class="score">${data.cosine_similarity.toFixed(3)}</span></p>
-                <p>Euclidean Mesafesi: <span class="score">${data.euclidean_distance.toFixed(3)}</span></p>
-                <p>Sonuç: <span class="score">${data.interpretation}</span></p>
-            </div>
-        `;
+        // Eski sonuçları küçültülmüş şekilde alt kısma ekle
+        if (documentAnalysisResults) {
+            similarityResults.innerHTML = newResultsHtml + `
+                <div class="previous-results" style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+                    <h4>Previous Document Analysis</h4>
+                    ${previousResults}
+                </div>
+            `;
+        } else {
+            similarityResults.innerHTML = newResultsHtml;
+        }
+
+        resetButton.style.display = 'inline-flex';
+        
     } catch (error) {
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                Analiz sırasında bir hata oluştu: ${error.message}
+                An error occurred while making analysis: ${error.message}
+            </div>
+            <div class="previous-results" style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+                ${previousResults}
             </div>
         `;
     }
@@ -148,6 +229,13 @@ async function analyzeFace() {
 
 async function analyzeDocument() {
     if (!isVideoRunning || currentObjectType !== 'document') return;
+    
+    similarityResults.innerHTML = `
+        <div class="loading-container">
+            <div class="loader"></div>
+            <span>Document analysis in progress...</span>
+        </div>
+    `;
     
     try {
         const response = await fetch('/document_analysis');
@@ -163,24 +251,103 @@ async function analyzeDocument() {
             return;
         }
         
+        // Belge analizi sonuçlarını sakla
+        documentAnalysisResults = data;
+        schoolNumber = data.student_no;
+        
         let resultHtml = `
-            <div class="result-item">
-                <h3>Belge Bilgileri</h3>
+            <div class="document-analysis-results">
+                <div class="result-item">
+                    <h3>Document Information</h3>
         `;
         
-        if (data.student_no) resultHtml += `<p>Öğrenci No: <span class="score">${data.student_no}</span></p>`;
-        if (data.name_surname) resultHtml += `<p>Ad Soyad: <span class="score">${data.name_surname}</span></p>`;
-        if (data.department) resultHtml += `<p>Bölüm: <span class="score">${data.department}</span></p>`;
-        if (data.class) resultHtml += `<p>Sınıf: <span class="score">${data.class}</span></p>`;
-        
+        if (data.student_no) resultHtml += `<p>Student Number: <span class="score">${data.student_no}</span></p>`;
+        if (data.name_surname) resultHtml += `<p>Name Surname: <span class="score">${data.name_surname}</span></p>`;
+        if (data.department) resultHtml += `<p>Department: <span class="score">${data.department}</span></p>`;
+        if (data.class) resultHtml += `<p>Class: <span class="score">${data.class}</span></p>`;
+
         resultHtml += `</div>`;
         similarityResults.innerHTML = resultHtml;
+
+        resetButton.style.display = 'inline-flex';
+
+        await findStudent(similarityResults);
+
+
     } catch (error) {
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                Belge analizi sırasında bir hata oluştu: ${error.message}
+                An error occurred while making analysis: ${error.message}
             </div>
         `;
+    }
+}
+
+async function findStudent(similarityResults) {
+    const currentContent = similarityResults.innerHTML;
+    
+    similarityResults.innerHTML += `
+        <div id="loadingContainer" class="loading-container">
+            <div class="loader"></div>
+            <span>Searching for student...</span>
+        </div>
+    `;
+ 
+    try {
+        if (!schoolNumber) {
+            similarityResults.innerHTML += `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Student not found</p>
+                </div>
+            `;
+            return;
+        }
+ 
+        const response = await fetch('/find_student', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-School-Number': schoolNumber
+            }
+        });
+ 
+        const data = await response.json();
+        
+        if (data.error) {
+            similarityResults.innerHTML += `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    ${data.error}
+                </div>
+            `;
+            return;
+        }
+        
+        let resultHtml = `
+            <div class="result-item">
+                <h3>Student Information</h3>
+                <div class="student-image">
+                    <img src="/get_student_image/${schoolNumber}" alt="Student Image" 
+                         style="width: 100px; height: 120px; object-fit: cover;">
+                </div>
+            </div>
+        `;
+        
+        similarityResults.innerHTML = currentContent + resultHtml;
+ 
+    } catch (error) {
+        similarityResults.innerHTML += `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                An error occurred during the search: ${error.message}
+            </div>
+        `;
+    } finally {
+        const loadingContainer = document.getElementById('loadingContainer');
+        if (loadingContainer) {
+            loadingContainer.remove();
+        }
     }
 }
