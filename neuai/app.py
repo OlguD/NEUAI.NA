@@ -1,15 +1,16 @@
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response, jsonify, request, send_file
 import cv2 as cv
 import numpy as np
 import logging
 from datetime import datetime
-from neuai.face_new_similarity import (FaceTracker, convert_to_vector, 
+from neuai.face_similarity import (FaceTracker, convert_to_vector, 
     normalize_vector, detect_face, cosine_similarity,
     euclidean_distance, interpret_similarity)
 import easyocr
 from neuai.document_detection import preprocess_image, extract_info
 from neuai.detect_object import detect_object_type
 from neuai.CameraManager import camera_session
+from neuai.FindStudent import FindStudent
 from dotenv import load_dotenv
 import os
 
@@ -188,6 +189,25 @@ def document_analysis():
             
     except Exception as e:
         logging.error(f"Belge analiz endpoint hatası: {str(e)}")
+        return jsonify({"error": str(e)})
+
+# app.py
+@app.route('/find_student')
+def find_student():
+    school_number = request.headers.get("X-School-Number")
+    try:
+        image_path = FindStudent.find_by_school_number(school_number)
+        return jsonify({"image_path": image_path})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+@app.route('/get_student_image/<school_number>')
+def get_student_image(school_number):
+    try:
+        image_path = FindStudent.find_by_school_number(school_number)
+        return send_file(image_path, mimetype='image/jpeg')
+    except Exception as e:
         return jsonify({"error": str(e)})
 
 def main():
