@@ -193,14 +193,14 @@ def interpret_similarity(cos_sim, euc_dist):
         similarity_score = (weighted_cos * 0.8) + (weighted_euc * 0.2)
         
         # Yorumla
-        if similarity_score >= 0.85:
-            interpretation = "Aynı kişi (Çok yüksek benzerlik)"
-        elif similarity_score >= 0.80:
-            interpretation = "Büyük olasılıkla aynı kişi"
+        if similarity_score >= 0.80:
+            interpretation = "Same person (Very high similarity)"
         elif similarity_score >= 0.75:
-            interpretation = "Benzer özellikler mevcut"
+            interpretation = "Most likely the same person"
+        elif similarity_score >= 0.70:
+            interpretation = "Similar features present"
         else:
-            interpretation = "Farklı kişiler"
+            interpretation = "Different persons"
 
         return {
             "similarity_score": float(similarity_score * 100),
