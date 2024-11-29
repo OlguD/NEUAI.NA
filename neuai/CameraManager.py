@@ -8,6 +8,10 @@ import threading
 import queue
 import time
 
+# Module-level constant for platform check
+IS_WINDOWS = platform.system().lower() == "windows"
+logging.info(f"Platform initialized: {platform.system()}")
+
 class CameraManagerSingleton:
     _instance = None
     _lock = threading.Lock()
@@ -38,14 +42,16 @@ class CameraManagerSingleton:
     def __init__camera(self):
         try:
             logging.info("Initializing camera with DirectShow")
-            cap = cv.VideoCapture(self.device_id, cv.CAP_DSHOW)
+            cap = cv.VideoCapture(self.device_id, cv.CAP_DSHOW if IS_WINDOWS else cv.CAP_ANY)
             
             if cap is None or not cap.isOpened():
-                logging.error("DirectShow camera initialization failed")
+                logging.error("Camera initialization failed")
                 return None
                 
-            # Kamera ayarları
-            cap.set(cv.CAP_PROP_SETTINGS, 0)
+            # Camera settings
+            #cap.set(cv.CAP_PROP_SETTINGS, 0) 
+            
+            # Keep other camera settings
             cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
             cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
             cap.set(cv.CAP_PROP_FPS, 30)
@@ -219,10 +225,9 @@ class CameraManager:
     def __init__(self):
         self.camera = None
         self.device_id = self._get_default_device()
-        self.is_windows = platform.system().lower() == "windows"
         
     def _get_default_device(self) -> int:
-        if platform.system().lower() == "darwin":
+        if not IS_WINDOWS:
             for device_id in range(3):
                 test_cap = cv.VideoCapture(device_id)
                 if test_cap.isOpened():
@@ -235,7 +240,7 @@ class CameraManager:
             self.release()
             
         try:
-            if self.is_windows:
+            if IS_WINDOWS:
                 self.camera = cv.VideoCapture(self.device_id, cv.CAP_MSMF)
                 if self.camera.isOpened():
                     self.camera.set(cv.CAP_PROP_BUFFERSIZE, 1)
@@ -275,7 +280,7 @@ class CameraManager:
             return False, None
             
         try:
-            for _ in range(2 if self.is_windows else 1):  # Windows may need multiple reads
+            for _ in range(2 if IS_WINDOWS else 1):  # Windows may need multiple reads
                 ret, frame = self.camera.read()
                 if ret and frame is not None:
                     return True, frame
@@ -319,12 +324,9 @@ def camera_session() -> Generator[CameraManager, None, None]:
 
 def get_camera_session():
     """Platform bağımsız kamera yöneticisi oluşturur"""
-    is_windows = platform.system().lower() == "windows"
+    logging.info("Using Windows-specific camera session" if IS_WINDOWS else "Using generic camera session")
     
-    logging.info(f"Platform: {platform.system()}")
-    
-    if is_windows:
-        logging.info("Using Windows-specific camera session")
+    if IS_WINDOWS:
         manager = CameraManagerSingleton()
         if not manager.start():  # Kamerayı başlat
             logging.error("Failed to start Windows camera")
@@ -337,4 +339,4 @@ def get_camera_session():
         logging.error("Failed to initialize camera")
         return None
 
-__all__ = ['get_camera_session', 'CameraManager', 'CameraManagerSingleton', 'CameraSession']            
+__all__ = ['get_camera_session', 'CameraManager', 'CameraManagerSingleton', 'CameraSession']

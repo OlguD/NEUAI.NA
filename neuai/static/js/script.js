@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     documentAnalyzeButton.addEventListener('click', analyzeDocument);
     resetButton.addEventListener('click', resetAnalysis);
 
-    resetButton.style.display = 'none';
+    // Change this line to show the button but keep it disabled
+    resetButton.disabled = true;
 });
 
 function showLoadingAnimation() {
@@ -47,22 +48,27 @@ function hideLoadingAnimation() {
 }
 
 function resetAnalysis() {
-    // Tüm analiz sonuçlarını ve durum değişkenlerini sıfırla
+    // Reset analysis results
     schoolNumber = null;
     documentAnalysisResults = null;
     similarityResults.innerHTML = '<div class="result-item"><p>No analysis has been done yet</p></div>';
     
-    // Butonları sıfırla
+    // Reset buttons but don't disable them
     faceAnalyzeButton.classList.remove('active');
     documentAnalyzeButton.classList.remove('active');
-    faceAnalyzeButton.disabled = true;
-    documentAnalyzeButton.disabled = true;
     
-    // Reset butonunu gizle
-    resetButton.style.display = 'none';
+    // Reset button should be disabled until next detection
+    resetButton.disabled = true;
     
-    // Mesajı güncelle
+    // Show message
     showMessage('Analysis results have been reset. You can start a new analysis.');
+    
+    // Add delay before restarting detection
+    setTimeout(() => {
+        if (isVideoRunning) {
+            detectObject();
+        }
+    }, 1500); // 1.5 second delay
 }
 
 function startVideo() {
@@ -78,13 +84,12 @@ function startVideo() {
     startButton.style.display = 'none';
     stopButton.style.display = 'inline-flex';
 
-    resetButton.style.display = 'inline-flex';
-
     controlsSecondary.style.display = 'flex';
     
     // Butonları sıfırla
     faceAnalyzeButton.disabled = true;
     documentAnalyzeButton.disabled = true;
+    resetButton.disabled = true;  // Keep reset disabled until detection
     
     // Nesne tespitini başlat
     detectObject();
@@ -122,21 +127,24 @@ function detectObject() {
                 return;
             }
 
-            if (data.type === 'face') {
-                currentObjectType = 'face';
-                faceAnalyzeButton.disabled = false;
-                documentAnalyzeButton.disabled = true;
-                faceAnalyzeButton.classList.add('active');
-                documentAnalyzeButton.classList.remove('active');
-                showMessage('Face detected - You can analyze the face');
-            }
-            else if (data.type === 'document') {
-                currentObjectType = 'document';
-                documentAnalyzeButton.disabled = false;
-                faceAnalyzeButton.disabled = true;
-                documentAnalyzeButton.classList.add('active');
-                faceAnalyzeButton.classList.remove('active');
-                showMessage('Document detected - You can analyze the document');
+            if (data.type === 'face' || data.type === 'document') {
+                resetButton.disabled = false;  // Enable reset button on first detection
+                if (data.type === 'face') {
+                    currentObjectType = 'face';
+                    faceAnalyzeButton.disabled = false;
+                    documentAnalyzeButton.disabled = true;
+                    faceAnalyzeButton.classList.add('active');
+                    documentAnalyzeButton.classList.remove('active');
+                    showMessage('Face detected - You can analyze the face');
+                }
+                else if (data.type === 'document') {
+                    currentObjectType = 'document';
+                    documentAnalyzeButton.disabled = false;
+                    faceAnalyzeButton.disabled = true;
+                    documentAnalyzeButton.classList.add('active');
+                    faceAnalyzeButton.classList.remove('active');
+                    showMessage('Document detected - You can analyze the document');
+                }
             }
             else {
                 faceAnalyzeButton.classList.remove('active');
