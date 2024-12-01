@@ -237,6 +237,12 @@ def get_student_image(school_number):
     except Exception as e:
         return jsonify({"error": str(e)})
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
 def main():
     """Flask sunucusunu başlatmak için bir giriş noktası."""
     app.run(debug=True)
