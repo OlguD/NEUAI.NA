@@ -10,6 +10,8 @@ const similarityResults = document.getElementById('similarityResults');
 const loadingAnimation = document.getElementById('loadingAnimation');
 const resetButton = document.getElementById('resetButton');
 const controlsSecondary = document.querySelector('.controls-secondary');
+const searchIcon = document.getElementsByClassName('search-icon')[0];
+const schoolNumberInput = document.getElementById('schoolNumber');
 
 let schoolNumber;
 let documentAnalysisResults = null;
@@ -28,6 +30,18 @@ document.addEventListener('DOMContentLoaded', () => {
     faceAnalyzeButton.addEventListener('click', analyzeFace);
     documentAnalyzeButton.addEventListener('click', analyzeDocument);
     resetButton.addEventListener('click', resetAnalysis);
+    
+    schoolNumberInput.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Form submission'ı engelle
+            const inputValue = schoolNumberInput.value.trim();
+            
+            if (inputValue) {
+                schoolNumber = inputValue;
+                await findStudentByNumber(schoolNumber);
+            }
+        }
+    });
 
     // Change this line to show the button but keep it disabled
     resetButton.disabled = true;
@@ -53,6 +67,10 @@ function resetAnalysis() {
     documentAnalysisResults = null;
     similarityResults.innerHTML = '<div class="result-item"><p>No analysis has been done yet</p></div>';
     
+    if (schoolNumberInput) {
+        schoolNumberInput.value = '';
+    }
+
     // Reset buttons but don't disable them
     faceAnalyzeButton.classList.remove('active');
     documentAnalyzeButton.classList.remove('active');
@@ -287,6 +305,62 @@ async function analyzeDocument() {
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
                 An error occurred while making analysis: ${error.message}
+            </div>
+        `;
+    }
+}
+
+async function findStudentByNumber(studentNumber) {
+    try {
+        // Loading göster
+        similarityResults.innerHTML = `
+            <div class="loading-container">
+                <div class="loader"></div>
+                <span>Searching for student ${studentNumber}...</span>
+            </div>
+        `;
+
+        const response = await fetch('/find_student', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-School-Number': studentNumber
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            similarityResults.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    ${data.error}
+                </div>
+            `;
+            return;
+        }
+
+        // Öğrenci bilgilerini göster
+        let resultHtml = `
+            <div class="result-item">
+                <h3>Student Information</h3>
+                <div class="student-image">
+                    <img src="/get_student_image/${studentNumber}" alt="Student Image" 
+                         style="width: 100px; height: 120px; object-fit: cover;">
+                </div>
+            </div>
+        `;
+
+        similarityResults.innerHTML = resultHtml;
+
+        // Reset butonunu aktif et
+        resetButton.disabled = false;
+
+    } catch (error) {
+        similarityResults.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                An error occurred during the search: ${error.message}
             </div>
         `;
     }

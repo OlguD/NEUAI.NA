@@ -454,3 +454,46 @@ body {
 .btn-icon i {
     font-size: 1.1rem;
 }
+
+
+.search-container {
+    position: relative;
+    width: 200px;
+    margin-top: 20px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 35px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.search-container input:focus {
+    border-color: #4a90e2;
+}
+
+.search-container .search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.search-container .search-icon:hover {
+    color: #4a90e2;
+}
+
+/* Responsive tasarım için */
+@media (max-width: 400px) {
+    .search-container {
+        width: 90%;
+    }
+}
