@@ -1,4 +1,3 @@
-// DOM elementlerini global olarak tanımla
 const videoFeed = document.getElementById('videoFeed');
 const placeholderImage = document.getElementById('placeholderImage');
 const startButton = document.getElementById('startButton');
@@ -15,6 +14,7 @@ const schoolNumberInput = document.getElementById('schoolNumber');
 
 let schoolNumber;
 let documentAnalysisResults = null;
+let studentImageHtml = null; // Öğrenci fotoğrafını saklamak için yeni değişken
 
 // Durum değişkenleri
 let isVideoRunning = false;
@@ -24,7 +24,6 @@ let detectionInterval = null;
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // hideLoadingAnimation();
     startButton.addEventListener('click', startVideo);
     stopButton.addEventListener('click', stopVideo);
     faceAnalyzeButton.addEventListener('click', analyzeFace);
@@ -32,18 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
     resetButton.addEventListener('click', resetAnalysis);
     
     schoolNumberInput.addEventListener('keypress', async function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault(); // Form submission'ı engelle
+        if(e.key === 'Enter') {
+            e.preventDefault();
             const inputValue = schoolNumberInput.value.trim();
-            
             if (inputValue) {
                 schoolNumber = inputValue;
-                await findStudentByNumber(schoolNumber);
+                await searchStudentByNumber(inputValue);
             }
         }
     });
 
-    // Change this line to show the button but keep it disabled
     resetButton.disabled = true;
 });
 
@@ -62,31 +59,27 @@ function hideLoadingAnimation() {
 }
 
 function resetAnalysis() {
-    // Reset analysis results
     schoolNumber = null;
     documentAnalysisResults = null;
+    studentImageHtml = null;
     similarityResults.innerHTML = '<div class="result-item"><p>No analysis has been done yet</p></div>';
     
     if (schoolNumberInput) {
         schoolNumberInput.value = '';
     }
 
-    // Reset buttons but don't disable them
     faceAnalyzeButton.classList.remove('active');
     documentAnalyzeButton.classList.remove('active');
     
-    // Reset button should be disabled until next detection
     resetButton.disabled = true;
     
-    // Show message
     showMessage('Analysis results have been reset. You can start a new analysis.');
     
-    // Add delay before restarting detection
     setTimeout(() => {
         if (isVideoRunning) {
             detectObject();
         }
-    }, 1500); // 1.5 second delay
+    }, 1500);
 }
 
 function startVideo() {
@@ -190,9 +183,16 @@ function showMessage(text) {
 async function analyzeFace() {
     if (!isVideoRunning || currentObjectType !== 'face') return;
     
-    // Önceki belge analizi sonuçlarını sakla
-    const previousResults = similarityResults.innerHTML;
-    
+    if (!schoolNumber) {
+        similarityResults.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                Please enter a school number first
+            </div>
+        `;
+        return;
+    }
+
     // Loading göster
     similarityResults.innerHTML = `
         <div class="loading-container">
@@ -202,42 +202,77 @@ async function analyzeFace() {
     `;
     
     try {
-        const response = await fetch('/analyze_face');
+        const response = await fetch('/analyze_face', {
+            headers: {
+                'X-School-Number': schoolNumber
+            }
+        });
         const data = await response.json();
         
-        let newResultsHtml = '';
+        let resultHtml = '';
         
+        // Sadece öğrencinin okul numarasını göster
+        if (!documentAnalysisResults) {
+            resultHtml += `
+                <div class="document-analysis-results">
+                    <div class="result-item">
+                        <h3>Student Information</h3>
+                        <p>Student Number: <span class="score">${schoolNumber}</span></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Öğrenci fotoğrafını göster
+        resultHtml += `
+            <div class="result-item">
+                <div class="student-image">
+                    <img src="/get_student_image/${schoolNumber}" alt="Student Image" 
+                         style="width: 100px; height: 120px; object-fit: cover;">
+                </div>
+            </div>
+        `;
+        
+        // Yüz analizi sonuçlarını ekle
         if (data.error) {
-            newResultsHtml = `
+            resultHtml += `
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
                     ${data.error}
                 </div>
             `;
         } else {
-            newResultsHtml = `
+            // resultHtml += `
+            //     <div class="result-item">
+            //         <h3>Face Analysis Results</h3>
+            //         <p>Similarity Score: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
+            //         <p>Cosine Similarty: <span class="score">${data.cosine_similarity.toFixed(3)}</span></p>
+            //         <p>Euclidean Distance: <span class="score">${data.euclidean_distance.toFixed(3)}</span></p>
+            //         <p>Result: <span class="score">${data.interpretation}</span></p>
+            //     </div>
+            // `;
+            resultHtml += `
                 <div class="result-item">
                     <h3>Face Analysis Results</h3>
                     <p>Similarity Score: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
-                    <p>Cosine Similarty: <span class="score">${data.cosine_similarity.toFixed(3)}</span></p>
-                    <p>Euclidean Distance: <span class="score">${data.euclidean_distance.toFixed(3)}</span></p>
                     <p>Result: <span class="score">${data.interpretation}</span></p>
                 </div>
             `;
         }
         
-        // Eski sonuçları küçültülmüş şekilde alt kısma ekle
+        // Belge analizi sonuçları varsa ekle
         if (documentAnalysisResults) {
-            similarityResults.innerHTML = newResultsHtml + `
-                <div class="previous-results" style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
-                    <h4>Previous Document Analysis</h4>
-                    ${previousResults}
+            resultHtml += `
+                <div class="result-item">
+                    <h3>Document Information</h3>
+                    ${documentAnalysisResults.name_surname ? `<p>Name Surname: <span class="score">${documentAnalysisResults.name_surname}</span></p>` : ''}
+                    ${documentAnalysisResults.department ? `<p>Department: <span class="score">${documentAnalysisResults.department}</span></p>` : ''}
+                    ${documentAnalysisResults.class ? `<p>Class: <span class="score">${documentAnalysisResults.class}</span></p>` : ''}
                 </div>
             `;
-        } else {
-            similarityResults.innerHTML = newResultsHtml;
         }
 
+        similarityResults.innerHTML = resultHtml;
         resetButton.style.display = 'inline-flex';
         
     } catch (error) {
@@ -245,9 +280,6 @@ async function analyzeFace() {
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
                 An error occurred while making analysis: ${error.message}
-            </div>
-            <div class="previous-results" style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
-                ${previousResults}
             </div>
         `;
     }
@@ -277,7 +309,6 @@ async function analyzeDocument() {
             return;
         }
         
-        // Belge analizi sonuçlarını sakla
         documentAnalysisResults = data;
         schoolNumber = data.student_no;
         
@@ -285,20 +316,18 @@ async function analyzeDocument() {
             <div class="document-analysis-results">
                 <div class="result-item">
                     <h3>Document Information</h3>
+                    ${data.name_surname ? `<p>Name Surname: <span class="score">${data.name_surname}</span></p>` : ''}
+                    ${data.department ? `<p>Department: <span class="score">${data.department}</span></p>` : ''}
+                    ${data.class ? `<p>Class: <span class="score">${data.class}</span></p>` : ''}
+                </div>
+            </div>
         `;
-        
-        if (data.student_no) resultHtml += `<p>Student Number: <span class="score">${data.student_no}</span></p>`;
-        if (data.name_surname) resultHtml += `<p>Name Surname: <span class="score">${data.name_surname}</span></p>`;
-        if (data.department) resultHtml += `<p>Department: <span class="score">${data.department}</span></p>`;
-        if (data.class) resultHtml += `<p>Class: <span class="score">${data.class}</span></p>`;
 
-        resultHtml += `</div>`;
         similarityResults.innerHTML = resultHtml;
-
         resetButton.style.display = 'inline-flex';
 
+        // Öğrenci fotoğrafını bul ve göster
         await findStudent(similarityResults);
-
 
     } catch (error) {
         similarityResults.innerHTML = `
@@ -310,16 +339,18 @@ async function analyzeDocument() {
     }
 }
 
-async function findStudentByNumber(studentNumber) {
-    try {
-        // Loading göster
-        similarityResults.innerHTML = `
-            <div class="loading-container">
-                <div class="loader"></div>
-                <span>Searching for student ${studentNumber}...</span>
-            </div>
-        `;
+async function searchStudentByNumber(studentNumber) {
+    if (!studentNumber) return;
 
+    // Loading göster
+    similarityResults.innerHTML = `
+        <div class="loading-container">
+            <div class="loader"></div>
+            <span>Searching for student...</span>
+        </div>
+    `;
+
+    try {
         const response = await fetch('/find_student', {
             method: 'GET',
             headers: {
@@ -340,21 +371,24 @@ async function findStudentByNumber(studentNumber) {
             return;
         }
 
-        // Öğrenci bilgilerini göster
         let resultHtml = `
-            <div class="result-item">
-                <h3>Student Information</h3>
-                <div class="student-image">
-                    <img src="/get_student_image/${studentNumber}" alt="Student Image" 
-                         style="width: 100px; height: 120px; object-fit: cover;">
+            <div class="document-analysis-results">
+                <div class="result-item">
+                    <h3>Student Information</h3>
+                    <p>Student Number: <span class="score">${studentNumber}</span></p>
+                </div>
+                <div class="result-item">
+                    <div class="student-image">
+                        <img src="/get_student_image/${studentNumber}" alt="Student Image" 
+                             style="width: 100px; height: 120px; object-fit: cover;">
+                    </div>
                 </div>
             </div>
         `;
 
         similarityResults.innerHTML = resultHtml;
-
-        // Reset butonunu aktif et
         resetButton.disabled = false;
+        resetButton.style.display = 'inline-flex';
 
     } catch (error) {
         similarityResults.innerHTML = `

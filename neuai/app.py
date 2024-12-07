@@ -179,16 +179,26 @@ def detect_object():
 
 @app.route('/analyze_face')
 def analyze_face():
+    school_number = request.headers.get("X-School-Number")
+    if not school_number:
+        return jsonify({"error": "School number is required"})
+
     camera_session = get_camera_session()
     if camera_session is None:
         return jsonify({"error": "Could not access camera"})
 
     try:
+        # Önce öğrenci fotoğrafını bul
+        student_image_path = FindStudent.find_by_school_number(school_number)
+        if not student_image_path:
+            return jsonify({"error": f"No image found for student number {school_number}"})
+
+        # Kameradan frame al
         success, frame = camera_session.read_frame()
         if not success:
             return jsonify({"error": "Could not read frame"})
             
-        result = analyze_face_similarity(frame, os.getenv("IMAGE2_PATH"))
+        result = analyze_face_similarity(frame, student_image_path)
         return jsonify(result)
     except Exception as e:
         logging.error(f"Analiz hatası: {str(e)}")
