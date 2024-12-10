@@ -30,19 +30,47 @@ document.addEventListener('DOMContentLoaded', () => {
     documentAnalyzeButton.addEventListener('click', analyzeDocument);
     resetButton.addEventListener('click', resetAnalysis);
     
+    // Update the school number input event handlers
     schoolNumberInput.addEventListener('keypress', async function(e) {
         if(e.key === 'Enter') {
             e.preventDefault();
-            const inputValue = schoolNumberInput.value.trim();
-            if (inputValue) {
-                schoolNumber = inputValue;
-                await searchStudentByNumber(inputValue);
-            }
+            handleSearch();
         }
     });
 
+    // Add click event for search icon
+    searchIcon.addEventListener('click', function() {
+        handleSearch();
+    });
+
     resetButton.disabled = true;
+
+    // Add input validation for numbers only
+    schoolNumberInput.addEventListener('input', function(e) {
+        // Replace any non-digit character with empty string
+        this.value = this.value.replace(/\D/g, '');
+    });
 });
+
+// Add new function to handle search
+async function handleSearch() {
+    const inputValue = schoolNumberInput.value.trim();
+    if (!inputValue) return;
+
+    // Check if input is exactly 8 digits
+    if (!/^\d{8}$/.test(inputValue)) {
+        similarityResults.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                School number must be exactly 8 digits
+            </div>
+        `;
+        return;
+    }
+
+    schoolNumber = inputValue;
+    await searchStudentByNumber(inputValue);
+}
 
 function showLoadingAnimation() {
     const spinner = document.getElementById('loadingSpinner');
