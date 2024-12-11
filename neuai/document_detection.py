@@ -40,107 +40,18 @@ def is_valid_name(text):
     
     return True
 
-def extract_info(texts, boxes):
-    """Metinlerden bilgileri çıkarır"""
+def extract_info(texts, boxes, image=None):
+    """Metinlerden öğrenci numarasını çıkarır"""
     info = {
-        'student_no': None,
-        'name_surname': None,
-        'department': None,
-        'class': None
+        'student_no': None
     }
     
-    # Dikey pozisyona göre sırala
-    text_with_pos = [(text.strip(), box[0][1]) for text, box in zip(texts, boxes)]
-    text_with_pos.sort(key=lambda x: x[1])
+    # Check each text for student number pattern
+    for text in texts:
+        # Clean the text and check for student number pattern (20xxxxxx)
+        cleaned_text = ''.join(filter(str.isdigit, text.strip()))
+        if re.match(r'^20\d{6}$', cleaned_text):
+            info['student_no'] = cleaned_text
+            break
     
-    for text, _ in text_with_pos:
-        # Öğrenci Numarası
-        if re.match(r'\b20\d{6}\b', text):
-            info['student_no'] = text
-            continue
-            
-        # Ad Soyad
-        if is_valid_name(text) and text.isupper():
-            info['name_surname'] = text
-            continue
-            
-        # Bölüm
-        if 'ENGINEERING' in text.upper() and len(text) > 10:
-            info['department'] = text
-            continue
-            
-        # Sınıf
-        if text.isdigit() and len(text) == 1 and 1 <= int(text) <= 4:
-            info['class'] = text
-            continue
-
     return info
-
-def enhance_document_detection(frame):
-    """Belge tespitini iyileştirir"""
-    try:
-        # Gri tonlamaya çevir
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
-        # Gürültü azaltma
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        
-        # Kenar tespiti
-        edges = cv2.Canny(blurred, 75, 200)
-        
-        # Kontur bulma
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        max_area = 0
-        best_rect = None
-        
-        for contour in contours:
-            perimeter = cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-            
-            if len(approx) == 4:  # Dörtgen şekil
-                area = cv2.contourArea(contour)
-                if area > max_area:
-                    max_area = area
-                    best_rect = approx
-        
-        if best_rect is not None:
-            # Perspektif düzeltme
-            pts = best_rect.reshape(4, 2)
-            rect = np.zeros((4, 2), dtype="float32")
-            
-            s = pts.sum(axis=1)
-            rect[0] = pts[np.argmin(s)]
-            rect[2] = pts[np.argmax(s)]
-            
-            diff = np.diff(pts, axis=1)
-            rect[1] = pts[np.argmin(diff)]
-            rect[3] = pts[np.argmax(diff)]
-            
-            (tl, tr, br, bl) = rect
-            
-            # Maksimum genişlik ve yükseklik
-            widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-            widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-            maxWidth = max(int(widthA), int(widthB))
-            
-            heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-            heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-            maxHeight = max(int(heightA), int(heightB))
-            
-            # Perspektif dönüşüm matrisi
-            dst = np.array([
-                [0, 0],
-                [maxWidth - 1, 0],
-                [maxWidth - 1, maxHeight - 1],
-                [0, maxHeight - 1]], dtype="float32")
-            
-            M = cv2.getPerspectiveTransform(rect, dst)
-            warped = cv2.warpPerspective(frame, M, (maxWidth, maxHeight))
-            
-            return warped
-            
-    except Exception as e:
-        print(f"Belge geliştirme hatası: {str(e)}")
-    
-    return frame

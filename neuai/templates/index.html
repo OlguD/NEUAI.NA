@@ -67,16 +67,53 @@
                     Analysis Results
                 </h2>
                 <p>Document and Face Recognition</p>
-                <div class="search-container">
-                    <input type="text" 
-                           name="schoolNumber" 
-                           id="schoolNumber" 
-                           placeholder="School Number" 
-                           maxlength="8" 
-                           pattern="[0-9]{8}">
-                    <i class="fa fa-search search-icon" aria-hidden="true"></i>
+                
+                <div class="tools-container">
+                    <!-- Document Upload Section -->
+                    <div class="tool-section">
+                        <h3><i class="fas fa-upload"></i> Document Upload</h3>
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="file-input-wrapper">
+                                <input type="file" id="documentFile" name="file" accept=".jpg,.jpeg,.png" onchange="previewImage(event)">
+                                <label for="documentFile" class="file-label">
+                                    <i class="fas fa-file-upload"></i>
+                                    Choose a document image
+                                </label>
+                            </div>
+                            <div id="imagePreviewContainer" style="display: none;" class="image-preview-container">
+                                <img id="imagePreview" src="" alt="Preview" class="image-preview">
+                            </div>
+                            <button type="button" class="btn btn-upload" onclick="uploadDocument()">
+                                <i class="fas fa-check"></i>
+                                Analyze Document
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Student Search Section -->
+                    <div class="tool-section">
+                        <h3><i class="fas fa-search"></i> Student Search</h3>
+                        <div class="search-form">
+                            <div class="search-input-wrapper">
+                                <label for="schoolNumber" class="search-label">
+                                    <i class="fas fa-id-card"></i>
+                                    Enter School Number
+                                </label>
+                                <input type="text" 
+                                       name="schoolNumber" 
+                                       id="schoolNumber" 
+                                       placeholder="20XXXXXX" 
+                                       maxlength="8" 
+                                       pattern="[0-9]{8}">
+                            </div>
+                            <button type="button" class="btn btn-search" onclick="handleSearch()">
+                                <i class="fas fa-search"></i>
+                                Search Student
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            
+
                 <div id="similarityResults">
                     <div class="result-item">
                         <p>No analysis done yet</p>

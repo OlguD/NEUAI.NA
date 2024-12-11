@@ -14,6 +14,8 @@ from neuai.FindStudent import FindStudent
 from dotenv import load_dotenv
 import os
 import time
+from werkzeug.utils import secure_filename
+import base64
 
 load_dotenv()
 
@@ -22,21 +24,26 @@ app = Flask(__name__)
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 def analyze_face_similarity(frame, reference_img_path):
     """Yüz benzerliği analizi yapar"""
     try:
         reference_image = cv.imread(reference_img_path)
-        if reference_image is None:
+        if (reference_image is None):
             return {"error": "Referans görüntü yüklenemedi"}
 
         reference_vector = convert_to_vector(reference_image)
-        if reference_vector is None:
+        if (reference_vector is None):
             return {"error": "Referans vektör oluşturulamadı"}
 
         normalized_reference_vector = normalize_vector(reference_vector)
         
         faces = detect_face(frame)
-        if not isinstance(faces, np.ndarray) or faces.size == 0:
+        if (not isinstance(faces, np.ndarray) or faces.size == 0):
             return {"error": "Yüz tespit edilemedi"}
 
         face = max(faces, key=lambda rect: rect[2] * rect[3])
@@ -44,7 +51,7 @@ def analyze_face_similarity(frame, reference_img_path):
         face_crop = frame[y:y+h, x:x+w]
         
         detected_face_vector = convert_to_vector(face_crop)
-        if detected_face_vector is None:
+        if (detected_face_vector is None):
             return {"error": "Yüz vektörü oluşturulamadı"}
 
         normalized_detected_vector = normalize_vector(detected_face_vector)
@@ -67,14 +74,14 @@ def analyze_document_frame(frame):
         reader = easyocr.Reader(['tr', 'en'])
         results = reader.readtext(processed)
         
-        if not results:
+        if (not results):
             return {"error": "Belgede metin tespit edilemedi"}
             
         texts = [result[1] for result in results]
         boxes = [result[0] for result in results]
         info = extract_info(texts, boxes)
         
-        if not any(info.values()):
+        if (not any(info.values())):
             return {"error": "Belge bilgileri okunamadı"}
             
         info['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -86,7 +93,7 @@ def analyze_document_frame(frame):
 
 def generate_frames():
     camera_session = get_camera_session()
-    if camera_session is None:
+    if (camera_session is None):
         print("Kamera başlatılamadı")
         return
 
@@ -97,7 +104,7 @@ def generate_frames():
         
         while True:
             success, frame = camera_session.read_frame()
-            if not success:
+            if (not success):
                 print("Kamera görüntüsü alınamadı")
                 time.sleep(0.1)  # Kısa bekle ve tekrar dene
                 continue
@@ -105,7 +112,7 @@ def generate_frames():
             # FPS loglama
             frame_count += 1
             current_time = time.time()
-            if current_time - last_frame_time >= 1.0:
+            if (current_time - last_frame_time >= 1.0):
                 fps = frame_count / (current_time - last_frame_time)
                 logging.debug(f"Video feed FPS: {fps:.2f}")
                 frame_count = 0
@@ -116,20 +123,20 @@ def generate_frames():
             # Nesne tespiti yap
             obj_type, confidence, obj_data = detect_object_type(frame)
 
-            if obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0:
+            if (obj_type == "face" and isinstance(obj_data, np.ndarray) and len(obj_data) > 0):
                 tracked_box = face_tracker.update(frame, obj_data)
                 
-                if tracked_box is not None:
+                if (tracked_box is not None):
                     x, y, w, h = tracked_box
                     cv.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
                             
-            elif obj_type == "document" and obj_data is not None:
+            elif (obj_type == "document" and obj_data is not None):
                 cv.drawContours(frame, [obj_data], -1, (0, 255, 0), 2)
                 face_tracker = FaceTracker()
 
             try:
                 ret, buffer = cv.imencode('.jpg', frame, [cv.IMWRITE_JPEG_QUALITY, 85])
-                if not ret:
+                if (not ret):
                     print("Çerçeve kodlanamadı")
                     continue
 
@@ -153,7 +160,7 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     stream = generate_frames()
-    if stream:
+    if (stream):
         return Response(stream, 
                        mimetype='multipart/x-mixed-replace; boundary=frame')
     return "Kamera başlatılamadı", 500
@@ -161,12 +168,12 @@ def video_feed():
 @app.route('/detect_object')
 def detect_object():
     camera_session = get_camera_session()
-    if camera_session is None:
+    if (camera_session is None):
         return jsonify({"error": "Could not access camera"})
 
     try:
         success, frame = camera_session.read_frame()
-        if not success:
+        if (not success):
             return jsonify({"error": "Could not read frame"})
             
         object_type, confidence, _ = detect_object_type(frame)
@@ -180,22 +187,22 @@ def detect_object():
 @app.route('/analyze_face')
 def analyze_face():
     school_number = request.headers.get("X-School-Number")
-    if not school_number:
+    if (not school_number):
         return jsonify({"error": "School number is required"})
 
     camera_session = get_camera_session()
-    if camera_session is None:
+    if (camera_session is None):
         return jsonify({"error": "Could not access camera"})
 
     try:
         # Önce öğrenci fotoğrafını bul
         student_image_path = FindStudent.find_by_school_number(school_number)
-        if not student_image_path:
+        if (not student_image_path):
             return jsonify({"error": f"No image found for student number {school_number}"})
 
         # Kameradan frame al
         success, frame = camera_session.read_frame()
-        if not success:
+        if (not success):
             return jsonify({"error": "Could not read frame"})
             
         result = analyze_face_similarity(frame, student_image_path)
@@ -209,17 +216,17 @@ def analyze_face():
 @app.route('/document_analysis')
 def document_analysis():
     camera_session = get_camera_session()
-    if camera_session is None:
+    if (camera_session is None):
         return jsonify({"error": "Could not access camera"})
 
     try:
         success, frame = camera_session.read_frame()
-        if not success:
+        if (not success):
             return jsonify({"error": "Could not read frame"})
             
         result = analyze_document_frame(frame)
         
-        if "error" not in result:
+        if ("error" not in result):
             logging.info(f"Belge analiz sonucu: {result}")
         
         return jsonify(result)
@@ -228,6 +235,39 @@ def document_analysis():
         return jsonify({"error": str(e)})
     finally:
         camera_session.release()
+
+@app.route('/upload_document', methods=['POST'])
+def upload_document():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+        
+    if file and allowed_file(file.filename):
+        try:
+            file_bytes = file.read()
+            nparr = np.frombuffer(file_bytes, np.uint8)
+            frame = cv.imdecode(nparr, cv.IMREAD_COLOR)
+            
+            if frame is None:
+                return jsonify({"error": "Could not process image"}), 400
+            
+            _, buffer = cv.imencode('.jpg', frame)
+            img_str = base64.b64encode(buffer).decode('utf-8')
+            
+            result = analyze_document_frame(frame)
+            result['image_preview'] = f"data:image/jpeg;base64,{img_str}"
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            logging.error(f"Document upload analysis error: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+    
+    return jsonify({"error": "Invalid file type"}), 400
+
 # app.py
 @app.route('/find_student')
 def find_student():

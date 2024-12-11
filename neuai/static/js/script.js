@@ -38,10 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Add click event for search icon
-    searchIcon.addEventListener('click', function() {
-        handleSearch();
-    });
+    // Remove the search icon event listener since we no longer have this element
+    // searchIcon.addEventListener('click', function() {
+    //     handleSearch();
+    // });
 
     resetButton.disabled = true;
 
@@ -87,15 +87,30 @@ function hideLoadingAnimation() {
 }
 
 function resetAnalysis() {
+    // Reset variables
     schoolNumber = null;
     documentAnalysisResults = null;
     studentImageHtml = null;
+    
+    // Reset similarity results
     similarityResults.innerHTML = '<div class="result-item"><p>No analysis has been done yet</p></div>';
     
+    // Reset school number input
     if (schoolNumberInput) {
         schoolNumberInput.value = '';
     }
 
+    // Reset file input and preview
+    const fileInput = document.getElementById('documentFile');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    if (fileInput) {
+        fileInput.value = ''; // Clear file input
+    }
+    if (previewContainer) {
+        previewContainer.style.display = 'none'; // Hide preview
+    }
+
+    // Reset analyze buttons
     faceAnalyzeButton.classList.remove('active');
     documentAnalyzeButton.classList.remove('active');
     
@@ -493,5 +508,91 @@ async function findStudent(similarityResults) {
         if (loadingContainer) {
             loadingContainer.remove();
         }
+    }
+}
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    const container = document.getElementById('imagePreviewContainer');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            container.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+async function uploadDocument() {
+    const fileInput = document.getElementById('documentFile');
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+        showMessage('Please select a file first');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    similarityResults.innerHTML = `
+        <div class="loading-container">
+            <div class="loader"></div>
+            <span>Analyzing uploaded document...</span>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/upload_document', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            similarityResults.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    ${data.error}
+                </div>
+            `;
+            return;
+        }
+
+        resetButton.disabled = false;
+        documentAnalysisResults = data;
+        schoolNumber = data.student_no;
+
+        let resultHtml = `
+            <div class="document-analysis-results">
+                <div class="result-item">
+                    <h3>Document Information</h3>
+        `;
+
+        if (data.student_no) resultHtml += `<p>Student Number: <span class="score">${data.student_no}</span></p>`;
+        if (data.name_surname) resultHtml += `<p>Name Surname: <span class="score">${data.name_surname}</span></p>`;
+        if (data.faculty) resultHtml += `<p>Faculty: <span class="score">${data.faculty}</span></p>`;
+        if (data.department) resultHtml += `<p>Department: <span class="score">${data.department}</span></p>`;
+        if (data.class) resultHtml += `<p>Class: <span class="score">${data.class}</span></p>`;
+
+        resultHtml += `</div></div>`;
+        similarityResults.innerHTML = resultHtml;
+
+        if (schoolNumber) {
+            await findStudent(similarityResults);
+        }
+
+    } catch (error) {
+        similarityResults.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                Upload failed: ${error.message}
+            </div>
+        `;
     }
 }
