@@ -511,6 +511,7 @@ async function findStudent(similarityResults) {
     }
 }
 
+/* Document upload functions - Temporarily disabled
 function previewImage(event) {
     const file = event.target.files[0];
     const preview = document.getElementById('imagePreview');
@@ -596,3 +597,4 @@ async function uploadDocument() {
         `;
     }
 }
+*/

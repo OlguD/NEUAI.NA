@@ -455,12 +455,14 @@ body {
     font-size: 1.1rem;
 }
 
-/* New layout styles */
+/* Update tools container to remove grid */
 .tools-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
     margin-bottom: 2rem;
+}
+
+/* Add full-width class */
+.full-width {
+    width: 100%;
 }
 
 .tool-section {
@@ -470,13 +472,10 @@ body {
     height: 100%;
 }
 
-.tool-section h3 {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+/* Update search form for better spacing */
+.search-form {
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 /* Updated search styles */
@@ -532,6 +531,7 @@ body {
     display: none;
 }
 
+/* Document upload styles - Temporarily disabled
 .upload-section {
     background: #f8fafc;
     padding: 1.5rem;
@@ -608,3 +608,4 @@ body {
 .upload-actions .btn-icon {
     flex-shrink: 0;
 }
+*/
