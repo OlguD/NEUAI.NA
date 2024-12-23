@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - Sayfa Bulunamadı | NEUAI.NA</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
     <style>
         :root {
             --primary-color: #2563eb;
@@ -79,7 +80,7 @@
         }
 
         .logo {
-            width: 65px;
+            width: 270px;
             height: 65px;
             border-radius: 8px;
             margin-bottom: 2rem;
@@ -102,7 +103,7 @@
 </head>
 <body>
     <div class="error-container">
-        <img src="{{ url_for('static', filename='assets/NEUAI-NA.webp') }}" alt="NEUAI.NA Logo" class="logo">
+        <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="logo">
         <div class="error-code">404</div>
         <h1 class="error-title">Page Not Found</h1>
         <p class="error-message">
