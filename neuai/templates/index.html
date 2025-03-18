@@ -91,6 +91,184 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- Export to Excel Button and Exam Selection -->
+                    <div class="tool-section full-width">
+                        <h3><i class="fas fa-file-export"></i> Export Data</h3>
+                        <div class="search-form">
+                            <div class="search-input-wrapper">
+                                <div class="collapsible-section">
+                                    <button type="button" id="examDropdownToggle" class="dropdown-toggle">
+                                        <div class="toggle-content">
+                                            <div>
+                                                <i class="fas fa-clipboard-list"></i>
+                                                <span>Select Exams</span>
+                                            </div>
+                                            <span id="selectedCount" class="exam-counter">0 selected</span>
+                                        </div>
+                                        <i class="fas fa-chevron-down toggle-icon"></i>
+                                    </button>
+                                    
+                                    <div class="collapsible-content" id="examSelectionContent">
+                                        <div class="exam-checkbox-container">
+                                            <!-- AIT101 Course -->
+                                            <div class="exam-course-group">
+                                                <div class="course-header">
+                                                    <label class="checkbox-label select-all-label">
+                                                        <input type="checkbox" class="select-all-course" data-course="AIT101">
+                                                        <span>AIT101 (All)</span>
+                                                    </label>
+                                                </div>
+                                                <div class="exam-checkbox-list">
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="AIT101_Midterm" class="exam-checkbox" data-course="AIT101">
+                                                        <span>Midterm</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="AIT101_Final" class="exam-checkbox" data-course="AIT101">
+                                                        <span>Final</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="AIT101_Makeup" class="exam-checkbox" data-course="AIT101">
+                                                        <span>Makeup</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- AIT102 Course -->
+                                            <div class="exam-course-group">
+                                                <div class="course-header">
+                                                    <label class="checkbox-label select-all-label">
+                                                        <input type="checkbox" class="select-all-course" data-course="AIT102">
+                                                        <span>AIT102 (All)</span>
+                                                    </label>
+                                                </div>
+                                                <div class="exam-checkbox-list">
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="AIT102_Midterm" class="exam-checkbox" data-course="AIT102">
+                                                        <span>Midterm</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="AIT102_Final" class="exam-checkbox" data-course="AIT102">
+                                                        <span>Final</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="AIT102_Makeup" class="exam-checkbox" data-course="AIT102">
+                                                        <span>Makeup</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- TUR101 Course -->
+                                            <div class="exam-course-group">
+                                                <div class="course-header">
+                                                    <label class="checkbox-label select-all-label">
+                                                        <input type="checkbox" class="select-all-course" data-course="TUR101">
+                                                        <span>TUR101 (All)</span>
+                                                    </label>
+                                                </div>
+                                                <div class="exam-checkbox-list">
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="TUR101_Midterm" class="exam-checkbox" data-course="TUR101">
+                                                        <span>Midterm</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="TUR101_Final" class="exam-checkbox" data-course="TUR101">
+                                                        <span>Final</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="TUR101_Makeup" class="exam-checkbox" data-course="TUR101">
+                                                        <span>Makeup</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- TUR102 Course -->
+                                            <div class="exam-course-group">
+                                                <div class="course-header">
+                                                    <label class="checkbox-label select-all-label">
+                                                        <input type="checkbox" class="select-all-course" data-course="TUR102">
+                                                        <span>TUR102 (All)</span>
+                                                    </label>
+                                                </div>
+                                                <div class="exam-checkbox-list">
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="TUR102_Midterm" class="exam-checkbox" data-course="TUR102">
+                                                        <span>Midterm</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="TUR102_Final" class="exam-checkbox" data-course="TUR102">
+                                                        <span>Final</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="TUR102_Makeup" class="exam-checkbox" data-course="TUR102">
+                                                        <span>Makeup</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- ENG101 Course -->
+                                            <div class="exam-course-group">
+                                                <div class="course-header">
+                                                    <label class="checkbox-label select-all-label">
+                                                        <input type="checkbox" class="select-all-course" data-course="ENG101">
+                                                        <span>ENG101 (All)</span>
+                                                    </label>
+                                                </div>
+                                                <div class="exam-checkbox-list">
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="ENG101_Midterm" class="exam-checkbox" data-course="ENG101">
+                                                        <span>Midterm</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="ENG101_Final" class="exam-checkbox" data-course="ENG101">
+                                                        <span>Final</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="ENG101_Makeup" class="exam-checkbox" data-course="ENG101">
+                                                        <span>Makeup</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- ENG102 Course -->
+                                            <div class="exam-course-group">
+                                                <div class="course-header">
+                                                    <label class="checkbox-label select-all-label">
+                                                        <input type="checkbox" class="select-all-course" data-course="ENG102">
+                                                        <span>ENG102 (All)</span>
+                                                    </label>
+                                                </div>
+                                                <div class="exam-checkbox-list">
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="ENG102_Midterm" class="exam-checkbox" data-course="ENG102">
+                                                        <span>Midterm</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="ENG102_Final" class="exam-checkbox" data-course="ENG102">
+                                                        <span>Final</span>
+                                                    </label>
+                                                    <label class="checkbox-label">
+                                                        <input type="checkbox" name="exam" value="ENG102_Makeup" class="exam-checkbox" data-course="ENG102">
+                                                        <span>Makeup</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="exam-actions">
+                                            <button type="button" id="selectAllExams" class="btn btn-sm">Select All</button>
+                                            <button type="button" id="clearAllExams" class="btn btn-sm btn-outline">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="exportExcelBtn" class="btn btn-export">
+                                <i class="fas fa-file-excel"></i>
+                                Export to Excel
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="similarityResults">

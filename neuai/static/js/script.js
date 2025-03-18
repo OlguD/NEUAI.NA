@@ -359,6 +359,7 @@ async function analyzeDocument() {
             <div class="document-analysis-results">
                 <div class="result-item">
                     <h3>Document Information</h3>
+                    ${data.student_no ? `<p>Student Number: <span class="score">${data.student_no}</span></p>` : ''}
                     ${data.name_surname ? `<p>Name Surname: <span class="score">${data.name_surname}</span></p>` : ''}
                     ${data.department ? `<p>Department: <span class="score">${data.department}</span></p>` : ''}
                     ${data.class ? `<p>Class: <span class="score">${data.class}</span></p>` : ''}
@@ -598,3 +599,135 @@ async function uploadDocument() {
     }
 }
 */
+
+// Exam Selection Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const examCheckboxes = document.querySelectorAll('.exam-checkbox');
+    const selectAllCourse = document.querySelectorAll('.select-all-course');
+    const selectAllExams = document.getElementById('selectAllExams');
+    const clearAllExams = document.getElementById('clearAllExams');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    // Update selected count
+    function updateSelectedCount() {
+        const count = document.querySelectorAll('.exam-checkbox:checked').length;
+        selectedCount.textContent = count === 1 ? '1 selected' : `${count} selected`;
+        
+        // Update export button state
+        const exportBtn = document.getElementById('exportExcelBtn');
+        if(count > 0) {
+            exportBtn.disabled = false;
+        } else {
+            exportBtn.disabled = true;
+        }
+    }
+    
+    // Handle individual checkbox changes
+    examCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const course = this.getAttribute('data-course');
+            const courseCheckboxes = document.querySelectorAll(`.exam-checkbox[data-course="${course}"]`);
+            const courseSelectAll = document.querySelector(`.select-all-course[data-course="${course}"]`);
+            
+            // Check if all course checkboxes are checked
+            const allChecked = Array.from(courseCheckboxes).every(cb => cb.checked);
+            courseSelectAll.checked = allChecked;
+            
+            updateSelectedCount();
+        });
+    });
+    
+    // Handle "Select All" for a course
+    selectAllCourse.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const course = this.getAttribute('data-course');
+            const courseCheckboxes = document.querySelectorAll(`.exam-checkbox[data-course="${course}"]`);
+            
+            courseCheckboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            
+            updateSelectedCount();
+        });
+    });
+    
+    // Select All Exams
+    selectAllExams.addEventListener('click', function() {
+        examCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        
+        selectAllCourse.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        
+        updateSelectedCount();
+    });
+    
+    // Clear All Exams
+    clearAllExams.addEventListener('click', function() {
+        examCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        selectAllCourse.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        updateSelectedCount();
+    });
+    
+    // Initialize count
+    updateSelectedCount();
+    
+    // Handle export button click
+    document.getElementById('exportExcelBtn').addEventListener('click', function() {
+        const selectedExams = Array.from(document.querySelectorAll('.exam-checkbox:checked'))
+            .map(cb => cb.value);
+            
+        if(selectedExams.length === 0) {
+            alert('Please select at least one exam to export.');
+            return;
+        }
+        
+        // Here you would implement the actual export logic
+        console.log('Exporting exams:', selectedExams);
+        // You would typically make an AJAX call to your backend here
+        // fetch('/export-to-excel', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ exams: selectedExams })
+        // })
+        // .then(response => response.blob())
+        // .then(blob => {
+        //     // Download the file
+        // });
+    });
+});
+
+// Exam dropdown toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Keep the existing exam checkbox functionality
+    // ...existing code...
+    
+    // Add dropdown toggle functionality
+    const examDropdownToggle = document.getElementById('examDropdownToggle');
+    const examSelectionContent = document.getElementById('examSelectionContent');
+    
+    if (examDropdownToggle && examSelectionContent) {
+        examDropdownToggle.setAttribute('aria-expanded', 'false');
+        examDropdownToggle.addEventListener('click', function() {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            
+            if (expanded) {
+                examSelectionContent.classList.remove('active');
+            } else {
+                examSelectionContent.classList.add('active');
+            }
+        });
+    }
+    
+    // The rest of the existing exam checkbox functionality
+    // ...existing code...
+});
