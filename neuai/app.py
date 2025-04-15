@@ -16,6 +16,9 @@ import os
 import time
 from werkzeug.utils import secure_filename
 import base64
+import json
+import pandas as pd
+import io
 
 load_dotenv()
 
@@ -287,6 +290,253 @@ def get_student_image(school_number):
     except Exception as e:
         return jsonify({"error": str(e)})
 
+@app.route('/save_attendance', methods=['POST'])
+def save_attendance():
+    try:
+        data = request.json
+        
+        if not data or 'schoolNumber' not in data or 'courses' not in data:
+            return jsonify({"error": "Invalid data format"})
+        
+        # Add timestamp using local time instead of UTC
+        current_time = datetime.now()
+        data['timestamp'] = current_time.isoformat()
+            
+        # Ensure the attendance directory exists
+        attendance_dir = os.path.join(app.static_folder, 'attendance')
+        os.makedirs(attendance_dir, exist_ok=True)
+        
+        # Create a filename based on date only
+        date_str = current_time.strftime('%Y%m%d')
+        filename = f"{date_str}.json"
+        filepath = os.path.join(attendance_dir, filename)
+        
+        # Check if file exists and append to it
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    attendance_data = json.load(f)
+                    
+                # Check if it's a list of records (new format)
+                if not isinstance(attendance_data, list):
+                    attendance_data = [attendance_data]  # Convert old format to new format
+                
+                # Check if student already exists for this day
+                student_exists = False
+                for i, student in enumerate(attendance_data):
+                    if student.get('schoolNumber') == data['schoolNumber']:
+                        # Update existing student record
+                        attendance_data[i] = data
+                        student_exists = True
+                        break
+                
+                if not student_exists:
+                    # Add new student record
+                    attendance_data.append(data)
+            except json.JSONDecodeError:
+                # File exists but is not valid JSON, create new
+                attendance_data = [data]
+        else:
+            # Create new file with a list of student records
+            attendance_data = [data]
+        
+        # Save the data to a JSON file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(attendance_data, f, ensure_ascii=False, indent=4)
+            
+        return jsonify({"success": True, "message": "Attendance saved successfully"})
+        
+    except Exception as e:
+        return jsonify({"error": f"Failed to save attendance: {str(e)}"})
+
+@app.route('/export-to-excel', methods=['POST'])
+def export_to_excel():
+    try:
+        # Get selected exams from request
+        data = request.get_json()
+        selected_exams = data.get('exams', [])
+        
+        if not selected_exams:
+            return jsonify({"error": "No exams selected"}), 400
+            
+        # Create the attendance directory path
+        attendance_dir = os.path.join(app.static_folder, 'attendance')
+        
+        # Check if directory exists
+        if not os.path.exists(attendance_dir):
+            return jsonify({"error": "No attendance records found"}), 404
+        
+        # Get current date for filename
+        current_date = datetime.now().strftime('%Y%m%d')
+        current_day_file = f"{current_date}.json"
+        file_path = os.path.join(attendance_dir, current_day_file)
+        
+        # Check if current day's attendance file exists
+        if not os.path.exists(file_path):
+            return jsonify({"error": f"No attendance records found for today ({current_date})"}), 404
+        
+        # Debug: Print full path
+        print(f"Looking for attendance file at: {file_path}")    
+            
+        # Dictionary to store student records by school number
+        student_records = {}
+        
+        # Process current day's file
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+                print(f"File content length: {len(file_content)}")
+                file_data = json.loads(file_content)
+                
+            # Debug information
+            print(f"Loaded JSON data, type: {type(file_data)}")
+            if isinstance(file_data, list):
+                print(f"Number of students in file: {len(file_data)}")
+                for i, student in enumerate(file_data):
+                    print(f"Student {i+1}: {student.get('schoolNumber', 'No school number')}")
+                
+            # Make sure file_data is a list
+            if not isinstance(file_data, list):
+                print("Converting file_data to list")
+                file_data = [file_data]
+                
+            # Process each student record
+            for student in file_data:
+                # Get student's school number
+                school_number = student.get('schoolNumber', '')
+                if not school_number:
+                    print("Skipping student with no school number")
+                    continue
+                    
+                print(f"Processing student: {school_number}")
+                
+                # Get student's courses
+                student_courses = student.get('courses', [])
+                print(f"Student courses: {student_courses}")
+                
+                # Check if student has any of the selected exams
+                matching_courses = [course for course in student_courses if course in selected_exams]
+                print(f"Matching courses: {matching_courses}")
+                
+                if matching_courses:
+                    # Extract timestamp info 
+                    timestamp = student.get('timestamp', '')
+                    date = ''
+                    time = ''
+                    
+                    # Parse timestamp using local time format
+                    if timestamp:
+                        try:
+                            # Handle different timestamp formats
+                            if '.' in timestamp:
+                                # Remove timezone if present
+                                if '+' in timestamp:
+                                    timestamp = timestamp.split('+')[0]
+                                dt = datetime.fromisoformat(timestamp)
+                            else:
+                                dt = datetime.fromisoformat(timestamp)
+                            
+                            date = dt.strftime('%Y-%m-%d')
+                            time = dt.strftime('%H:%M:%S')
+                        except Exception as e:
+                            print(f"Error parsing timestamp {timestamp}: {e}")
+                            # Fallback - try to extract date and time portions
+                            if 'T' in timestamp:
+                                date_part = timestamp.split('T')[0]
+                                time_part = timestamp.split('T')[1].split('.')[0] if '.' in timestamp else timestamp.split('T')[1]
+                                date = date_part
+                                time = time_part
+                        
+                    # Extract student info from documentInfo if available
+                    document_info = student.get('documentInfo', {})
+                    name = document_info.get('nameSurname', '')
+                    department = document_info.get('department', '')
+                    student_class = document_info.get('class', '')
+                    
+                    # Format matching courses as comma-separated string
+                    courses_str = ', '.join(matching_courses)
+                    
+                    # Create or update student record
+                    if school_number in student_records:
+                        # Update existing record's courses
+                        current_courses = student_records[school_number]['Exams']
+                        # Merge and deduplicate courses
+                        all_courses = set(current_courses.split(', ') if current_courses else [])
+                        all_courses.update(matching_courses)
+                        student_records[school_number]['Exams'] = ', '.join(sorted(all_courses))
+                    else:
+                        # Create new record for this student
+                        student_records[school_number] = {
+                            'Date': date,
+                            'Time': time,
+                            'School Number': school_number,
+                            'Name': name,
+                            'Department': department,
+                            'Class': student_class,
+                            'Exams': courses_str,
+                            'Attendance': 'Present' if student.get('attendance', False) else 'Absent'
+                        }
+                        
+                        # Add similarity score if available
+                        face_analysis = student.get('faceAnalysis', {})
+                        if face_analysis and 'similarity_score' in face_analysis:
+                            student_records[school_number]['Similarity Score'] = f"{face_analysis['similarity_score']:.2f}%"
+                            student_records[school_number]['Result'] = face_analysis.get('interpretation', '')
+                else:
+                    print(f"No matching courses for student {school_number}")
+                        
+            # Print debug info about the records being processed
+            print(f"Total student records to export: {len(student_records)}")
+            for record in student_records.values():
+                print(f"Student: {record.get('School Number')} - Exams: {record.get('Exams')}")
+                
+        except Exception as e:
+            import traceback
+            print(f"Error processing file {current_day_file}: {e}")
+            traceback.print_exc()
+            return jsonify({"error": f"Failed to process attendance data: {str(e)}"}), 500
+        
+        # Convert dictionary to list of records
+        all_records = list(student_records.values())
+        
+        if not all_records:
+            return jsonify({"error": "No matching records found for selected exams today"}), 404
+        
+        # Convert records to DataFrame
+        df = pd.DataFrame(all_records)
+        
+        # Sort by time and school number
+        if 'Time' in df.columns:
+            df = df.sort_values(by=['Time', 'School Number'])
+        else:
+            df = df.sort_values(by=['School Number'])
+        
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='Today\'s Attendance', index=False)
+            
+            # Auto-adjust columns' width
+            worksheet = writer.sheets['Today\'s Attendance']
+            for i, col in enumerate(df.columns):
+                column_width = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                worksheet.set_column(i, i, column_width)
+        
+        output.seek(0)
+        
+        # Return Excel file
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'attendance_export_{current_date}.xlsx'
+        )
+            
+    except Exception as e:
+        import traceback
+        print(f"Export error: {e}")
+        traceback.print_exc()
+        return jsonify({"error": f"Export failed: {str(e)}"}), 500
 
 @app.errorhandler(404)
 def page_not_found(e):

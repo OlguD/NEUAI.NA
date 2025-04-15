@@ -8,6 +8,8 @@ const detectionMessage = document.getElementById('detectionMessage');
 const similarityResults = document.getElementById('similarityResults');
 const loadingAnimation = document.getElementById('loadingAnimation');
 const resetButton = document.getElementById('resetButton');
+const confirmButton = document.getElementById('confirmButton');
+const rejectButton = document.getElementById('rejectButton');
 const controlsSecondary = document.querySelector('.controls-secondary');
 const searchIcon = document.getElementsByClassName('search-icon')[0];
 const schoolNumberInput = document.getElementById('schoolNumber');
@@ -15,12 +17,16 @@ const schoolNumberInput = document.getElementById('schoolNumber');
 let schoolNumber;
 let documentAnalysisResults = null;
 let studentImageHtml = null; // Öğrenci fotoğrafını saklamak için yeni değişken
+let studentData = null; // Keep track of student data for saving
+let faceAnalysisResults = null; // Store face analysis results
+let selectedCourses = []; // Store selected courses
 
 // Durum değişkenleri
 let isVideoRunning = false;
 let isObjectDetected = false;
 let currentObjectType = null;
 let detectionInterval = null;
+let isFaceAnalyzed = false; // Track if face has been analyzed
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     faceAnalyzeButton.addEventListener('click', analyzeFace);
     documentAnalyzeButton.addEventListener('click', analyzeDocument);
     resetButton.addEventListener('click', resetAnalysis);
+    confirmButton.addEventListener('click', confirmAttendance);
+    rejectButton.addEventListener('click', rejectAttendance);
     
     // Update the school number input event handlers
     schoolNumberInput.addEventListener('keypress', async function(e) {
@@ -252,6 +260,11 @@ async function analyzeFace() {
         });
         const data = await response.json();
         
+        // Store face analysis results
+        faceAnalysisResults = data;
+        // Mark face as analyzed
+        isFaceAnalyzed = true;
+        
         let resultHtml = '';
         
         // Sadece öğrencinin okul numarasını göster
@@ -285,15 +298,6 @@ async function analyzeFace() {
                 </div>
             `;
         } else {
-            // resultHtml += `
-            //     <div class="result-item">
-            //         <h3>Face Analysis Results</h3>
-            //         <p>Similarity Score: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
-            //         <p>Cosine Similarty: <span class="score">${data.cosine_similarity.toFixed(3)}</span></p>
-            //         <p>Euclidean Distance: <span class="score">${data.euclidean_distance.toFixed(3)}</span></p>
-            //         <p>Result: <span class="score">${data.interpretation}</span></p>
-            //     </div>
-            // `;
             resultHtml += `
                 <div class="result-item">
                     <h3>Face Analysis Results</h3>
@@ -317,6 +321,9 @@ async function analyzeFace() {
 
         similarityResults.innerHTML = resultHtml;
         resetButton.style.display = 'inline-flex';
+        
+        // Update confirm/reject buttons state
+        updateButtonState();
         
     } catch (error) {
         similarityResults.innerHTML = `
@@ -690,18 +697,53 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Here you would implement the actual export logic
-        console.log('Exporting exams:', selectedExams);
-        // You would typically make an AJAX call to your backend here
-        // fetch('/export-to-excel', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ exams: selectedExams })
-        // })
-        // .then(response => response.blob())
-        // .then(blob => {
-        //     // Download the file
-        // });
+        // Show loading in the results section
+        similarityResults.innerHTML = `
+            <div class="loading-container">
+                <div class="loader"></div>
+                <span>Generating Excel export...</span>
+            </div>
+        `;
+        
+        // Send request to export the selected exams
+        fetch('/export-to-excel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ exams: selectedExams })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Export failed');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create a download link for the Excel file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().split('T')[0];
+            a.href = url;
+            a.download = `attendance_export_${date}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            // Show success message
+            similarityResults.innerHTML = `
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    Excel file successfully downloaded!
+                </div>
+            `;
+        })
+        .catch(error => {
+            similarityResults.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Export failed: ${error.message}
+                </div>
+            `;
+        });
     });
 });
 
@@ -731,3 +773,126 @@ document.addEventListener('DOMContentLoaded', function() {
     // The rest of the existing exam checkbox functionality
     // ...existing code...
 });
+
+// Function to enable/disable buttons based on face analysis and course selection
+function updateButtonState() {
+    const hasSelectedCourse = document.querySelectorAll('.exam-checkbox:checked').length > 0;
+    
+    // Enable confirm/reject buttons only if face is analyzed and course is selected
+    confirmButton.disabled = !(isFaceAnalyzed && hasSelectedCourse);
+    rejectButton.disabled = !(isFaceAnalyzed && hasSelectedCourse);
+}
+
+// Function to handle confirm button click
+function confirmAttendance() {
+    if (!schoolNumber) {
+        showMessage('Error: No student selected');
+        return;
+    }
+
+    // Get selected courses
+    const selectedCourses = Array.from(document.querySelectorAll('.exam-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    if (selectedCourses.length === 0) {
+        showMessage('Please select at least one course');
+        return;
+    }
+
+    // Prepare student data for saving
+    const studentInfo = {
+        schoolNumber: schoolNumber,
+        courses: selectedCourses,
+        timestamp: new Date().toISOString(),
+        attendance: true
+    };
+
+    // Add document data if available
+    if (documentAnalysisResults) {
+        studentInfo.documentInfo = {
+            nameSurname: documentAnalysisResults.name_surname || '',
+            department: documentAnalysisResults.department || '',
+            class: documentAnalysisResults.class || ''
+        };
+    }
+
+    // Add face analysis data if available
+    if (faceAnalysisResults) {
+        studentInfo.faceAnalysis = faceAnalysisResults;
+    }
+
+    // Save student data to JSON file
+    saveStudentData(studentInfo);
+}
+
+// Function to handle reject button click
+function rejectAttendance() {
+    if (!schoolNumber) {
+        showMessage('Error: No student selected');
+        return;
+    }
+    
+    // Reset the form without saving
+    resetAnalysis();
+    showMessage('Attendance rejected. Ready for next student.');
+}
+
+// Function to save student data to a JSON file
+async function saveStudentData(studentData) {
+    similarityResults.innerHTML += `
+        <div id="savingContainer" class="loading-container">
+            <div class="loader"></div>
+            <span>Saving attendance data...</span>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/save_attendance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(studentData)
+        });
+
+        const data = await response.json();
+        
+        const savingContainer = document.getElementById('savingContainer');
+        if (savingContainer) {
+            savingContainer.remove();
+        }
+
+        if (data.error) {
+            similarityResults.innerHTML += `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    ${data.error}
+                </div>
+            `;
+        } else {
+            similarityResults.innerHTML += `
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    Attendance successfully saved!
+                </div>
+            `;
+            
+            // Reset after successful save
+            setTimeout(() => {
+                resetAnalysis();
+            }, 2000);
+        }
+    } catch (error) {
+        const savingContainer = document.getElementById('savingContainer');
+        if (savingContainer) {
+            savingContainer.remove();
+        }
+
+        similarityResults.innerHTML += `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                Error saving attendance: ${error.message}
+            </div>
+        `;
+    }
+}

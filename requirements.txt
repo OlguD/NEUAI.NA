@@ -5,3 +5,5 @@ easyocr
 torch
 Flask
 python-dotenv
+xlsxwriter
+pandas

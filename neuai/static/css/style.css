@@ -1139,3 +1139,22 @@ body {
     height: 7px; /* Keep current height */
     /* ...existing code... */
 }
+
+/* Confirm and Reject button styles */
+.btn-confirm {
+    background-color: #16a34a;
+    color: white;
+}
+
+.btn-confirm:hover:not(:disabled) {
+    background-color: #15803d;
+}
+
+.btn-reject {
+    background-color: #dc2626;
+    color: white;
+}
+
+.btn-reject:hover:not(:disabled) {
+    background-color: #b91c1c;
+}
