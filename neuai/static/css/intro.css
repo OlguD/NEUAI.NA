@@ -1,0 +1,77 @@
+.intro-body {
+    background-color: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.intro-container {
+    max-width: 800px;
+    width: 90%;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 3rem;
+    text-align: center;
+}
+
+.intro-logo {
+    width: 300px;
+    max-width: 100%;
+    margin-bottom: 2rem;
+}
+
+.intro-title {
+    font-size: 2rem;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+}
+
+.intro-description {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.5;
+}
+
+.auth-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.auth-button i {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .intro-container {
+        padding: 2rem;
+    }
+    
+    .intro-title {
+        font-size: 1.75rem;
+    }
+    
+    .auth-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}

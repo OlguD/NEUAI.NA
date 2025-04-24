@@ -1,0 +1,30 @@
+[
+    {
+        "schoolNumber": "20212105",
+        "courses": [
+            "AIT101_Midterm"
+        ],
+        "timestamp": "2025-04-24T21:16:12.268658",
+        "attendance": true,
+        "faceAnalysis": {
+            "cosine_similarity": 0.6902382671833038,
+            "euclidean_distance": 1.1131248474121094,
+            "interpretation": "Similar features present",
+            "similarity_score": 73.73489491144817
+        }
+    },
+    {
+        "schoolNumber": "20211156",
+        "courses": [
+            "AIT102_Midterm"
+        ],
+        "timestamp": "2025-04-24T21:16:40.913214",
+        "attendance": true,
+        "faceAnalysis": {
+            "cosine_similarity": 0.6200579255819321,
+            "euclidean_distance": 1.2327888011932373,
+            "interpretation": "Different persons",
+            "similarity_score": 67.96091564496358
+        }
+    }
+]

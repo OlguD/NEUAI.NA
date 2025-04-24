@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEUAI.NA - Authorization Required</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/intro.css') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
+</head>
+<body class="intro-body">
+    <div class="intro-container">
+        <div class="intro-content">
+            <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="intro-logo">
+            <h1 class="intro-title">Authorized Access Required</h1>
+            <p class="intro-description">This system is restricted to authorized personnel only. Click the button below to proceed.</p>
+            <a href="{{ url_for('index') }}" class="auth-button transition">
+                <i class="fas fa-lock-open"></i>
+                Authorized Access
+            </a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
+</body>
+</html>

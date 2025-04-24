@@ -13,8 +13,6 @@
     <div class="container">
         <header class="header">
             <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="logo">
-            <!-- <h1>NEUAI.NA</h1> -->
-            
         </header>
 
         <main class="main-content">
@@ -61,6 +59,13 @@
                                 Document
                             </button>
                         </div>
+                    </div>
+                    
+                    <div class="exit-button-container" style="margin-top: 15px; text-align: center;">
+                        <a href="{{ url_for('intro') }}" class="btn btn-exit transition">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Exit System
+                        </a>
                     </div>
                 </div>
 
@@ -134,10 +139,6 @@
                                                         <input type="checkbox" name="exam" value="AIT101_Final" class="exam-checkbox" data-course="AIT101">
                                                         <span>Final</span>
                                                     </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="AIT101_Makeup" class="exam-checkbox" data-course="AIT101">
-                                                        <span>Makeup</span>
-                                                    </label>
                                                 </div>
                                             </div>
                                             
@@ -157,10 +158,6 @@
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="AIT102_Final" class="exam-checkbox" data-course="AIT102">
                                                         <span>Final</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="AIT102_Makeup" class="exam-checkbox" data-course="AIT102">
-                                                        <span>Makeup</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -182,10 +179,6 @@
                                                         <input type="checkbox" name="exam" value="TUR101_Final" class="exam-checkbox" data-course="TUR101">
                                                         <span>Final</span>
                                                     </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="TUR101_Makeup" class="exam-checkbox" data-course="TUR101">
-                                                        <span>Makeup</span>
-                                                    </label>
                                                 </div>
                                             </div>
                                             
@@ -205,10 +198,6 @@
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="TUR102_Final" class="exam-checkbox" data-course="TUR102">
                                                         <span>Final</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="TUR102_Makeup" class="exam-checkbox" data-course="TUR102">
-                                                        <span>Makeup</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -230,10 +219,6 @@
                                                         <input type="checkbox" name="exam" value="ENG101_Final" class="exam-checkbox" data-course="ENG101">
                                                         <span>Final</span>
                                                     </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="ENG101_Makeup" class="exam-checkbox" data-course="ENG101">
-                                                        <span>Makeup</span>
-                                                    </label>
                                                 </div>
                                             </div>
                                             
@@ -253,10 +238,6 @@
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="ENG102_Final" class="exam-checkbox" data-course="ENG102">
                                                         <span>Final</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="ENG102_Makeup" class="exam-checkbox" data-course="ENG102">
-                                                        <span>Makeup</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -286,5 +267,6 @@
         </main>
     </div>
     <script src="{{ url_for('static', filename='/js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
 </body>
 </html>

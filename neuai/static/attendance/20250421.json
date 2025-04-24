@@ -1,0 +1,17 @@
+[
+    {
+        "schoolNumber": "20212105",
+        "courses": [
+            "AIT101_Midterm",
+            "AIT101_Final"
+        ],
+        "timestamp": "2025-04-21T21:41:34.909089",
+        "attendance": true,
+        "faceAnalysis": {
+            "cosine_similarity": 0.671628400683403,
+            "euclidean_distance": 1.1460744142532349,
+            "interpretation": "Similar features present",
+            "similarity_score": 72.20217283566794
+        }
+    }
+]

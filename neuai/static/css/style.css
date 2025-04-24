@@ -16,6 +16,26 @@
     box-sizing: border-box;
 }
 
+/* Page transition effects */
+/* Remove the fade and other effects, keep only scale effect */
+.fade-out, .fade-in, .slide-out, .slide-in, .rotate-out, .rotate-in {
+    display: none;
+}
+
+/* Scale effect */
+.scale-out {
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.5s ease;
+    pointer-events: none;
+}
+
+.scale-in {
+    transform: scale(1);
+    opacity: 1;
+    transition: all 0.5s ease;
+}
+
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--background-color);
@@ -23,6 +43,12 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     padding: 2rem 0;
+    /* Keep only the scale effect properties */
+    transform: scale(1);
+    opacity: 1;
+    transition: all 0.5s ease;
+    transform-origin: center top;
+    perspective: 1000px;
 }
 
 .container {
@@ -1157,4 +1183,37 @@ body {
 
 .btn-reject:hover:not(:disabled) {
     background-color: #b91c1c;
+}
+
+/* New exit button style */
+.btn-exit {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.btn-exit:hover {
+    background-color: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-exit i {
+    margin-right: 8px;
+}
+
+.exit-button-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
