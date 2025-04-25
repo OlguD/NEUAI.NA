@@ -418,77 +418,71 @@ def export_to_excel():
                 student_courses = student.get('courses', [])
                 print(f"Student courses: {student_courses}")
                 
-                # Check if student has any of the selected exams
-                matching_courses = [course for course in student_courses if course in selected_exams]
-                print(f"Matching courses: {matching_courses}")
+                # No longer filtering by matching courses - include all students
+                # Format student courses as comma-separated string
+                courses_str = ', '.join(student_courses)
                 
-                if matching_courses:
-                    # Extract timestamp info 
-                    timestamp = student.get('timestamp', '')
-                    date = ''
-                    time = ''
-                    
-                    # Parse timestamp using local time format
-                    if timestamp:
-                        try:
-                            # Handle different timestamp formats
-                            if '.' in timestamp:
-                                # Remove timezone if present
-                                if '+' in timestamp:
-                                    timestamp = timestamp.split('+')[0]
-                                dt = datetime.fromisoformat(timestamp)
-                            else:
-                                dt = datetime.fromisoformat(timestamp)
-                            
-                            date = dt.strftime('%Y-%m-%d')
-                            time = dt.strftime('%H:%M:%S')
-                        except Exception as e:
-                            print(f"Error parsing timestamp {timestamp}: {e}")
-                            # Fallback - try to extract date and time portions
-                            if 'T' in timestamp:
-                                date_part = timestamp.split('T')[0]
-                                time_part = timestamp.split('T')[1].split('.')[0] if '.' in timestamp else timestamp.split('T')[1]
-                                date = date_part
-                                time = time_part
+                # Extract timestamp info 
+                timestamp = student.get('timestamp', '')
+                date = ''
+                time = ''
+                
+                # Parse timestamp using local time format
+                if timestamp:
+                    try:
+                        # Handle different timestamp formats
+                        if '.' in timestamp:
+                            # Remove timezone if present
+                            if '+' in timestamp:
+                                timestamp = timestamp.split('+')[0]
+                            dt = datetime.fromisoformat(timestamp)
+                        else:
+                            dt = datetime.fromisoformat(timestamp)
                         
-                    # Extract student info from documentInfo if available
-                    document_info = student.get('documentInfo', {})
-                    name = document_info.get('nameSurname', '')
-                    department = document_info.get('department', '')
-                    student_class = document_info.get('class', '')
+                        date = dt.strftime('%Y-%m-%d')
+                        time = dt.strftime('%H:%M:%S')
+                    except Exception as e:
+                        print(f"Error parsing timestamp {timestamp}: {e}")
+                        # Fallback - try to extract date and time portions
+                        if 'T' in timestamp:
+                            date_part = timestamp.split('T')[0]
+                            time_part = timestamp.split('T')[1].split('.')[0] if '.' in timestamp else timestamp.split('T')[1]
+                            date = date_part
+                            time = time_part
                     
-                    # Format matching courses as comma-separated string
-                    courses_str = ', '.join(matching_courses)
-                    
-                    # Create or update student record
-                    if school_number in student_records:
-                        # Update existing record's courses
-                        current_courses = student_records[school_number]['Exams']
-                        # Merge and deduplicate courses
-                        all_courses = set(current_courses.split(', ') if current_courses else [])
-                        all_courses.update(matching_courses)
-                        student_records[school_number]['Exams'] = ', '.join(sorted(all_courses))
-                    else:
-                        # Create new record for this student
-                        student_records[school_number] = {
-                            'Date': date,
-                            'Time': time,
-                            'School Number': school_number,
-                            'Name': name,
-                            'Department': department,
-                            'Class': student_class,
-                            'Exams': courses_str,
-                            'Attendance': 'Present' if student.get('attendance', False) else 'Absent'
-                        }
-                        
-                        # Add similarity score if available
-                        face_analysis = student.get('faceAnalysis', {})
-                        if face_analysis and 'similarity_score' in face_analysis:
-                            student_records[school_number]['Similarity Score'] = f"{face_analysis['similarity_score']:.2f}%"
-                            student_records[school_number]['Result'] = face_analysis.get('interpretation', '')
+                # Extract student info from documentInfo if available
+                document_info = student.get('documentInfo', {})
+                name = document_info.get('nameSurname', '')
+                department = document_info.get('department', '')
+                student_class = document_info.get('class', '')
+                
+                # Create or update student record
+                if school_number in student_records:
+                    # Update existing record's courses
+                    current_courses = student_records[school_number]['Exams']
+                    # Merge and deduplicate courses
+                    all_courses = set(current_courses.split(', ') if current_courses else [])
+                    all_courses.update(student_courses)
+                    student_records[school_number]['Exams'] = ', '.join(sorted(all_courses))
                 else:
-                    print(f"No matching courses for student {school_number}")
-                        
+                    # Create new record for this student
+                    student_records[school_number] = {
+                        'Date': date,
+                        'Time': time,
+                        'School Number': school_number,
+                        'Name': name,
+                        'Department': department,
+                        'Class': student_class,
+                        'Exams': courses_str,
+                        'Attendance': 'Present' if student.get('attendance', False) else 'Absent'
+                    }
+                    
+                    # Add similarity score if available
+                    face_analysis = student.get('faceAnalysis', {})
+                    if face_analysis and 'similarity_score' in face_analysis:
+                        student_records[school_number]['Similarity Score'] = f"{face_analysis['similarity_score']:.2f}%"
+                        student_records[school_number]['Result'] = face_analysis.get('interpretation', '')
+                    
             # Print debug info about the records being processed
             print(f"Total student records to export: {len(student_records)}")
             for record in student_records.values():
@@ -504,7 +498,7 @@ def export_to_excel():
         all_records = list(student_records.values())
         
         if not all_records:
-            return jsonify({"error": "No matching records found for selected exams today"}), 404
+            return jsonify({"error": "No records found for today"}), 404
         
         # Convert records to DataFrame
         df = pd.DataFrame(all_records)

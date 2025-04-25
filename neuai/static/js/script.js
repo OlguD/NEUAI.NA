@@ -620,12 +620,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const count = document.querySelectorAll('.exam-checkbox:checked').length;
         selectedCount.textContent = count === 1 ? '1 selected' : `${count} selected`;
         
-        // Update export button state
+        // Export button should always be active
         const exportBtn = document.getElementById('exportExcelBtn');
-        if(count > 0) {
+        if(exportBtn) {
             exportBtn.disabled = false;
-        } else {
-            exportBtn.disabled = true;
         }
     }
     
@@ -687,16 +685,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize count
     updateSelectedCount();
     
+    // Make sure export button is always enabled
+    const exportBtn = document.getElementById('exportExcelBtn');
+    if(exportBtn) {
+        exportBtn.disabled = false;
+    }
+    
     // Handle export button click
     document.getElementById('exportExcelBtn').addEventListener('click', function() {
-        const selectedExams = Array.from(document.querySelectorAll('.exam-checkbox:checked'))
+        let selectedExams = Array.from(document.querySelectorAll('.exam-checkbox:checked'))
             .map(cb => cb.value);
             
         if(selectedExams.length === 0) {
-            alert('Please select at least one exam to export.');
-            return;
+            // Instead of showing error, automatically select all exams
+            const allExams = Array.from(document.querySelectorAll('.exam-checkbox'));
+            selectedExams = allExams.map(cb => cb.value);
+            
+            // Show notification that we're exporting all exams
+            similarityResults.innerHTML = `
+                <div class="info-message">
+                    <i class="fas fa-info-circle"></i>
+                    No exams were selected. Exporting all available exams.
+                </div>
+            `;
+            
+            // Brief delay to show the notification before continuing
+            setTimeout(() => {
+                proceedWithExport(selectedExams);
+            }, 1000);
+        } else {
+            proceedWithExport(selectedExams);
         }
-        
+    });
+    
+    // Helper function to handle the actual export process
+    function proceedWithExport(selectedExams) {
         // Show loading in the results section
         similarityResults.innerHTML = `
             <div class="loading-container">
@@ -744,7 +767,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         });
-    });
+    }
 });
 
 // Exam dropdown toggle functionality
@@ -837,6 +860,28 @@ function rejectAttendance() {
     showMessage('Attendance rejected. Ready for next student.');
 }
 
+// Function to clear all exam checkboxes
+function clearExamSelections() {
+    const examCheckboxes = document.querySelectorAll('.exam-checkbox');
+    const selectAllCourse = document.querySelectorAll('.select-all-course');
+    
+    // Clear all exam checkboxes
+    examCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Clear all course "select all" checkboxes
+    selectAllCourse.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Update the selected count display
+    const selectedCount = document.getElementById('selectedCount');
+    if (selectedCount) {
+        selectedCount.textContent = '0 selected';
+    }
+}
+
 // Function to save student data to a JSON file
 async function saveStudentData(studentData) {
     similarityResults.innerHTML += `
@@ -876,6 +921,13 @@ async function saveStudentData(studentData) {
                     Attendance successfully saved!
                 </div>
             `;
+            
+            // Clear the exam selections after successful save
+            clearExamSelections();
+            
+            // Disable confirm/reject buttons after successful save
+            confirmButton.disabled = true;
+            rejectButton.disabled = true;
             
             // Reset after successful save
             setTimeout(() => {

@@ -8,6 +8,30 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/intro.css') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
+    <style>
+        .intro-body {
+            background-image: url("{{ url_for('static', filename='assets/İnovasyon_-1.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        
+        .intro-container {
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay for better readability */
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .intro-content {
+            color: white; /* Ensuring text is visible on the background */
+        }
+        
+        .intro-description {
+            color: #f0f0f0;
+        }
+    </style>
 </head>
 <body class="intro-body">
     <div class="intro-container">

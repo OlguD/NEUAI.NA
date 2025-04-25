@@ -2,29 +2,31 @@
     {
         "schoolNumber": "20212105",
         "courses": [
-            "AIT101_Midterm"
+            "AIT101_Midterm",
+            "AIT101_Final"
         ],
-        "timestamp": "2025-04-24T21:16:12.268658",
+        "timestamp": "2025-04-24T22:47:26.850820",
         "attendance": true,
         "faceAnalysis": {
-            "cosine_similarity": 0.6902382671833038,
-            "euclidean_distance": 1.1131248474121094,
-            "interpretation": "Similar features present",
-            "similarity_score": 73.73489491144817
+            "cosine_similarity": 0.7249574661254883,
+            "euclidean_distance": 1.0488899946212769,
+            "interpretation": "Most likely the same person",
+            "similarity_score": 76.5980772972107
         }
     },
     {
         "schoolNumber": "20211156",
         "courses": [
-            "AIT102_Midterm"
+            "ENG101_Midterm",
+            "ENG101_Final"
         ],
-        "timestamp": "2025-04-24T21:16:40.913214",
+        "timestamp": "2025-04-24T22:46:00.583107",
         "attendance": true,
         "faceAnalysis": {
-            "cosine_similarity": 0.6200579255819321,
-            "euclidean_distance": 1.2327888011932373,
-            "interpretation": "Different persons",
-            "similarity_score": 67.96091564496358
+            "cosine_similarity": 0.6479463279247284,
+            "euclidean_distance": 1.1866822242736816,
+            "interpretation": "Similar features present",
+            "similarity_score": 70.25346326828003
         }
     }
 ]
