@@ -34,6 +34,102 @@
         .intro-description {
             color: #f0f0f0;
         }
+
+        /* Password input styles */
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+
+        .password-input {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+            padding: 0.8rem 1rem;
+            text-align: center;
+            width: 200px;
+            margin-bottom: 1rem;
+            padding-right: 2.5rem; /* Add extra padding on the right for the eye icon */
+        }
+
+        .password-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: normal;
+            font-size: 1rem; /* Smaller font size for placeholder */
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .submit-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .submit-button i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            visibility: hidden;
+        }
+        
+        /* Password visibility toggle styles */
+        .password-field-container {
+            position: relative;
+            width: 200px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 40%; /* Adjusted from 50% to account for visual alignment */
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5; /* Ensure eye appears above input content */
+        }
+        
+        .password-toggle:hover {
+            color: white;
+        }
     </style>
 </head>
 <body class="intro-body">
@@ -41,13 +137,69 @@
         <div class="intro-content">
             <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="intro-logo">
             <h1 class="intro-title">Authorized Access Required</h1>
-            <p class="intro-description">This system is restricted to authorized personnel only. Click the button below to proceed.</p>
-            <a href="{{ url_for('index') }}" class="auth-button transition">
-                <i class="fas fa-lock-open"></i>
-                Authorized Access
-            </a>
+            <p class="intro-description">This system is restricted to authorized personnel only. Please enter the password.</p>
+            
+            <form id="passwordForm" class="password-form" data-redirect="{{ url_for('index') }}">
+                <div class="password-field-container">
+                    <input type="password" id="passwordInput" class="password-input" maxlength="4" placeholder="Enter Password" pattern="[0-9]*" inputmode="numeric">
+                    <button type="button" id="passwordToggle" class="password-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                    </button>
+                </div>
+                <div id="errorMessage" class="error-message">Incorrect password. Please try again.</div>
+                <button type="submit" class="submit-button transition">
+                    <i class="fas fa-lock" id="lockIcon"></i>
+                    Verify Access
+                </button>
+            </form>
         </div>
     </div>
     <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
+    <script>
+        // Password visibility toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordToggleIcon = document.getElementById('passwordToggleIcon');
+            const lockIcon = document.getElementById('lockIcon');
+            const passwordForm = document.getElementById('passwordForm');
+            
+            if (passwordToggle) {
+                passwordToggle.addEventListener('click', function() {
+                    // Toggle password visibility
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        passwordToggleIcon.classList.remove('fa-eye');
+                        passwordToggleIcon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        passwordToggleIcon.classList.remove('fa-eye-slash');
+                        passwordToggleIcon.classList.add('fa-eye');
+                    }
+                    
+                    // Focus back on the input
+                    passwordInput.focus();
+                });
+            }
+            
+            // Check password and change lock icon when form is submitted
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    // Don't add e.preventDefault() here as it would interfere with the transitions.js functionality
+                    
+                    // If password is correct, change the lock icon
+                    if (passwordInput.value === '1408') {
+                        lockIcon.classList.remove('fa-lock');
+                        lockIcon.classList.add('fa-lock-open');
+                        
+                        // Add a slight delay before form submission to show the icon change
+                        setTimeout(function() {
+                            // The form will be handled by transitions.js
+                        }, 200);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
