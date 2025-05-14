@@ -16,6 +16,37 @@
     box-sizing: border-box;
 }
 
+/* Language selector styles */
+.language-selector {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.language-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.language-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.language-btn.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
 /* Page transition effects */
 /* Remove the fade and other effects, keep only scale effect */
 .fade-out, .fade-in, .slide-out, .slide-in, .rotate-out, .rotate-in {

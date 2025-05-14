@@ -28,6 +28,86 @@ let currentObjectType = null;
 let detectionInterval = null;
 let isFaceAnalyzed = false; // Track if face has been analyzed
 
+// Add translation objects near the top of the file
+const translations = {
+    en: {
+        studentNumber: "Student Number",
+        studentInformation: "Student Information",
+        documentInformation: "Document Information",
+        nameSurname: "Name Surname",
+        department: "Department",
+        class: "Class",
+        faceAnalysisResults: "Face Analysis Results",
+        similarityScore: "Similarity Score",
+        result: "Result",
+        searching: "Searching for student...",
+        studentNotFound: "Student not found",
+        searchError: "An error occurred during the search",
+        noAnalysis: "No analysis has been done yet",
+        faceAnalysisInProgress: "Face analysis in progress...",
+        documentAnalysisInProgress: "Document analysis in progress...",
+        
+        // New message translations
+        faceDetected: "Face detected - You can analyze the face",
+        documentDetected: "Document detected - You can analyze the document",
+        mostLikelySamePerson: "Most likely the same person",
+        resetAnalysis: "Analysis results have been reset. You can start a new analysis.",
+        enterSchoolNumber: "Please enter a school number first",
+        exactlyEightDigits: "School number must be exactly 8 digits",
+        noStudentSelected: "Error: No student selected",
+        selectCourse: "Please select at least one course",
+        attendanceSaved: "Attendance successfully saved!",
+        attendanceRejected: "Attendance rejected. Ready for next student.",
+        savingAttendance: "Saving attendance data...",
+        excelDownloaded: "Excel file successfully downloaded!",
+        generatingExcel: "Generating Excel export...",
+        exportFailed: "Export failed",
+        similarFeatures: "Similar features present",
+        differentPersons: "Different persons"
+    },
+    tr: {
+        studentNumber: "Öğrenci Numarası",
+        studentInformation: "Öğrenci Bilgileri",
+        documentInformation: "Belge Bilgileri",
+        nameSurname: "Ad Soyad",
+        department: "Bölüm",
+        class: "Sınıf",
+        faceAnalysisResults: "Yüz Analiz Sonuçları",
+        similarityScore: "Benzerlik Puanı",
+        result: "Sonuç",
+        searching: "Öğrenci aranıyor...",
+        studentNotFound: "Öğrenci bulunamadı",
+        searchError: "Arama sırasında bir hata oluştu",
+        noAnalysis: "Henüz analiz yapılmadı",
+        faceAnalysisInProgress: "Yüz analizi yapılıyor...",
+        documentAnalysisInProgress: "Belge analizi yapılıyor...",
+        
+        // New message translations
+        faceDetected: "Yüz tespit edildi - Yüzü analiz edebilirsiniz",
+        documentDetected: "Belge tespit edildi - Belgeyi analiz edebilirsiniz",
+        mostLikelySamePerson: "Büyük olasılıkla aynı kişi",
+        resetAnalysis: "Analiz sonuçları sıfırlandı. Yeni bir analiz başlatabilirsiniz.",
+        enterSchoolNumber: "Lütfen önce bir okul numarası girin",
+        exactlyEightDigits: "Okul numarası tam olarak 8 rakam olmalıdır",
+        noStudentSelected: "Hata: Öğrenci seçilmedi",
+        selectCourse: "Lütfen en az bir ders seçin",
+        attendanceSaved: "Katılım başarıyla kaydedildi!",
+        attendanceRejected: "Katılım reddedildi. Sonraki öğrenci için hazır.",
+        savingAttendance: "Katılım verileri kaydediliyor...",
+        excelDownloaded: "Excel dosyası başarıyla indirildi!",
+        generatingExcel: "Excel dışa aktarımı oluşturuluyor...",
+        exportFailed: "Dışa aktarma başarısız oldu",
+        similarFeatures: "Benzer özellikler mevcut",
+        differentPersons: "Farklı kişiler"
+    }
+};
+
+// Helper function to get translation based on current language
+function getTranslation(key) {
+    const lang = localStorage.getItem('preferredLanguage') || 'en';
+    return translations[lang][key] || key;
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     startButton.addEventListener('click', startVideo);
@@ -70,7 +150,7 @@ async function handleSearch() {
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                School number must be exactly 8 digits
+                ${getTranslation('exactlyEightDigits')}
             </div>
         `;
         return;
@@ -101,7 +181,7 @@ function resetAnalysis() {
     studentImageHtml = null;
     
     // Reset similarity results
-    similarityResults.innerHTML = '<div class="result-item"><p>No analysis has been done yet</p></div>';
+    similarityResults.innerHTML = `<div class="result-item"><p>${getTranslation('noAnalysis')}</p></div>`;
     
     // Reset school number input
     if (schoolNumberInput) {
@@ -124,7 +204,7 @@ function resetAnalysis() {
     
     resetButton.disabled = true;
     
-    showMessage('Analysis results have been reset. You can start a new analysis.');
+    showMessage(getTranslation('resetAnalysis'));
     
     setTimeout(() => {
         if (isVideoRunning) {
@@ -197,7 +277,7 @@ function detectObject() {
                     documentAnalyzeButton.disabled = true;
                     faceAnalyzeButton.classList.add('active');
                     documentAnalyzeButton.classList.remove('active');
-                    showMessage('Face detected - You can analyze the face');
+                    showMessage(getTranslation('faceDetected'));
                 }
                 else if (data.type === 'document') {
                     currentObjectType = 'document';
@@ -205,7 +285,7 @@ function detectObject() {
                     faceAnalyzeButton.disabled = true;
                     documentAnalyzeButton.classList.add('active');
                     faceAnalyzeButton.classList.remove('active');
-                    showMessage('Document detected - You can analyze the document');
+                    showMessage(getTranslation('documentDetected'));
                 }
             }
             else {
@@ -228,6 +308,13 @@ function showMessage(text) {
                 ${text}
             </div>
         `;
+        
+        // Auto-hide reset analysis message after 3 seconds
+        if (text === getTranslation('resetAnalysis')) {
+            setTimeout(() => {
+                detectionMessage.innerHTML = '';
+            }, 3000);
+        }
     }
 }
 
@@ -238,7 +325,7 @@ async function analyzeFace() {
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                Please enter a school number first
+                ${getTranslation('enterSchoolNumber')}
             </div>
         `;
         return;
@@ -248,7 +335,7 @@ async function analyzeFace() {
     similarityResults.innerHTML = `
         <div class="loading-container">
             <div class="loader"></div>
-            <span>Face analysis in progress...</span>
+            <span>${getTranslation('faceAnalysisInProgress')}</span>
         </div>
     `;
     
@@ -272,8 +359,8 @@ async function analyzeFace() {
             resultHtml += `
                 <div class="document-analysis-results">
                     <div class="result-item">
-                        <h3>Student Information</h3>
-                        <p>Student Number: <span class="score">${schoolNumber}</span></p>
+                        <h3>${getTranslation('studentInformation')}</h3>
+                        <p>${getTranslation('studentNumber')}: <span class="score">${schoolNumber}</span></p>
                     </div>
                 </div>
             `;
@@ -298,11 +385,21 @@ async function analyzeFace() {
                 </div>
             `;
         } else {
+            // Check if data.interpretation matches the English text and replace with translation if needed
+            let interpretation = data.interpretation;
+            if (interpretation === "Most likely the same person") {
+                interpretation = getTranslation('mostLikelySamePerson');
+            } else if (interpretation === "Similar features present") {
+                interpretation = getTranslation('similarFeatures');
+            } else if (interpretation === "Different persons") {
+                interpretation = getTranslation('differentPersons');
+            }
+            
             resultHtml += `
                 <div class="result-item">
-                    <h3>Face Analysis Results</h3>
-                    <p>Similarity Score: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
-                    <p>Result: <span class="score">${data.interpretation}</span></p>
+                    <h3>${getTranslation('faceAnalysisResults')}</h3>
+                    <p>${getTranslation('similarityScore')}: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
+                    <p>${getTranslation('result')}: <span class="score">${interpretation}</span></p>
                 </div>
             `;
         }
@@ -311,10 +408,10 @@ async function analyzeFace() {
         if (documentAnalysisResults) {
             resultHtml += `
                 <div class="result-item">
-                    <h3>Document Information</h3>
-                    ${documentAnalysisResults.name_surname ? `<p>Name Surname: <span class="score">${documentAnalysisResults.name_surname}</span></p>` : ''}
-                    ${documentAnalysisResults.department ? `<p>Department: <span class="score">${documentAnalysisResults.department}</span></p>` : ''}
-                    ${documentAnalysisResults.class ? `<p>Class: <span class="score">${documentAnalysisResults.class}</span></p>` : ''}
+                    <h3>${getTranslation('documentInformation')}</h3>
+                    ${documentAnalysisResults.name_surname ? `<p>${getTranslation('nameSurname')}: <span class="score">${documentAnalysisResults.name_surname}</span></p>` : ''}
+                    ${documentAnalysisResults.department ? `<p>${getTranslation('department')}: <span class="score">${documentAnalysisResults.department}</span></p>` : ''}
+                    ${documentAnalysisResults.class ? `<p>${getTranslation('class')}: <span class="score">${documentAnalysisResults.class}</span></p>` : ''}
                 </div>
             `;
         }
@@ -341,7 +438,7 @@ async function analyzeDocument() {
     similarityResults.innerHTML = `
         <div class="loading-container">
             <div class="loader"></div>
-            <span>Document analysis in progress...</span>
+            <span>${getTranslation('documentAnalysisInProgress')}</span>
         </div>
     `;
     
@@ -365,11 +462,11 @@ async function analyzeDocument() {
         let resultHtml = `
             <div class="document-analysis-results">
                 <div class="result-item">
-                    <h3>Document Information</h3>
-                    ${data.student_no ? `<p>Student Number: <span class="score">${data.student_no}</span></p>` : ''}
-                    ${data.name_surname ? `<p>Name Surname: <span class="score">${data.name_surname}</span></p>` : ''}
-                    ${data.department ? `<p>Department: <span class="score">${data.department}</span></p>` : ''}
-                    ${data.class ? `<p>Class: <span class="score">${data.class}</span></p>` : ''}
+                    <h3>${getTranslation('documentInformation')}</h3>
+                    ${data.student_no ? `<p>${getTranslation('studentNumber')}: <span class="score">${data.student_no}</span></p>` : ''}
+                    ${data.name_surname ? `<p>${getTranslation('nameSurname')}: <span class="score">${data.name_surname}</span></p>` : ''}
+                    ${data.department ? `<p>${getTranslation('department')}: <span class="score">${data.department}</span></p>` : ''}
+                    ${data.class ? `<p>${getTranslation('class')}: <span class="score">${data.class}</span></p>` : ''}
                 </div>
             </div>
         `;
@@ -397,7 +494,7 @@ async function searchStudentByNumber(studentNumber) {
     similarityResults.innerHTML = `
         <div class="loading-container">
             <div class="loader"></div>
-            <span>Searching for student...</span>
+            <span>${getTranslation('searching')}</span>
         </div>
     `;
 
@@ -425,8 +522,8 @@ async function searchStudentByNumber(studentNumber) {
         let resultHtml = `
             <div class="document-analysis-results">
                 <div class="result-item">
-                    <h3>Student Information</h3>
-                    <p>Student Number: <span class="score">${studentNumber}</span></p>
+                    <h3>${getTranslation('studentInformation')}</h3>
+                    <p>${getTranslation('studentNumber')}: <span class="score">${studentNumber}</span></p>
                 </div>
                 <div class="result-item">
                     <div class="student-image">
@@ -445,7 +542,7 @@ async function searchStudentByNumber(studentNumber) {
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                An error occurred during the search: ${error.message}
+                ${getTranslation('searchError')}: ${error.message}
             </div>
         `;
     }
@@ -457,7 +554,7 @@ async function findStudent(similarityResults) {
     similarityResults.innerHTML += `
         <div id="loadingContainer" class="loading-container">
             <div class="loader"></div>
-            <span>Searching for student...</span>
+            <span>${getTranslation('searching')}</span>
         </div>
     `;
  
@@ -466,7 +563,7 @@ async function findStudent(similarityResults) {
             similarityResults.innerHTML += `
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
-                    <p>Student not found</p>
+                    <p>${getTranslation('studentNotFound')}</p>
                 </div>
             `;
             return;
@@ -494,7 +591,7 @@ async function findStudent(similarityResults) {
         
         let resultHtml = `
             <div class="result-item">
-                <h3>Student Information</h3>
+                <h3>${getTranslation('studentInformation')}</h3>
                 <div class="student-image">
                     <img src="/get_student_image/${schoolNumber}" alt="Student Image" 
                          style="width: 100px; height: 120px; object-fit: cover;">
@@ -508,7 +605,7 @@ async function findStudent(similarityResults) {
         similarityResults.innerHTML += `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                An error occurred during the search: ${error.message}
+                ${getTranslation('searchError')}: ${error.message}
             </div>
         `;
     } finally {
@@ -618,7 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update selected count
     function updateSelectedCount() {
         const count = document.querySelectorAll('.exam-checkbox:checked').length;
-        selectedCount.textContent = count === 1 ? '1 selected' : `${count} selected`;
+        const lang = localStorage.getItem('preferredLanguage') || 'en';
+        const suffix = selectedCount.getAttribute(`data-${lang}-prefix`) || '';
+        selectedCount.textContent = `${count} ${suffix}`;
         
         // Export button should always be active
         const exportBtn = document.getElementById('exportExcelBtn');
@@ -697,22 +796,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .map(cb => cb.value);
             
         if(selectedExams.length === 0) {
-            // Instead of showing error, automatically select all exams
+            // Instead of showing a notification, silently select all exams and proceed
             const allExams = Array.from(document.querySelectorAll('.exam-checkbox'));
             selectedExams = allExams.map(cb => cb.value);
             
-            // Show notification that we're exporting all exams
-            similarityResults.innerHTML = `
-                <div class="info-message">
-                    <i class="fas fa-info-circle"></i>
-                    No exams were selected. Exporting all available exams.
-                </div>
-            `;
-            
-            // Brief delay to show the notification before continuing
-            setTimeout(() => {
-                proceedWithExport(selectedExams);
-            }, 1000);
+            // Proceed immediately with export without showing any message
+            proceedWithExport(selectedExams);
         } else {
             proceedWithExport(selectedExams);
         }
@@ -724,7 +813,7 @@ document.addEventListener('DOMContentLoaded', function() {
         similarityResults.innerHTML = `
             <div class="loading-container">
                 <div class="loader"></div>
-                <span>Generating Excel export...</span>
+                <span>${getTranslation('generatingExcel')}</span>
             </div>
         `;
         
@@ -736,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Export failed');
+                throw new Error(getTranslation('exportFailed'));
             }
             return response.blob();
         })
@@ -751,19 +840,28 @@ document.addEventListener('DOMContentLoaded', function() {
             a.click();
             window.URL.revokeObjectURL(url);
             
-            // Show success message
+            // Show success message with translation
             similarityResults.innerHTML = `
                 <div class="success-message">
                     <i class="fas fa-check-circle"></i>
-                    Excel file successfully downloaded!
+                    ${getTranslation('excelDownloaded')}
                 </div>
             `;
+            
+            // Auto-hide Excel download success message after 3 seconds
+            setTimeout(() => {
+                similarityResults.innerHTML = `
+                    <div class="result-item">
+                        <p>${getTranslation('noAnalysis')}</p>
+                    </div>
+                `;
+            }, 3000);
         })
         .catch(error => {
             similarityResults.innerHTML = `
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
-                    Export failed: ${error.message}
+                    ${getTranslation('exportFailed')}: ${error.message}
                 </div>
             `;
         });
@@ -809,7 +907,7 @@ function updateButtonState() {
 // Function to handle confirm button click
 function confirmAttendance() {
     if (!schoolNumber) {
-        showMessage('Error: No student selected');
+        showMessage(getTranslation('noStudentSelected'));
         return;
     }
 
@@ -818,7 +916,7 @@ function confirmAttendance() {
         .map(cb => cb.value);
     
     if (selectedCourses.length === 0) {
-        showMessage('Please select at least one course');
+        showMessage(getTranslation('selectCourse'));
         return;
     }
 
@@ -851,13 +949,13 @@ function confirmAttendance() {
 // Function to handle reject button click
 function rejectAttendance() {
     if (!schoolNumber) {
-        showMessage('Error: No student selected');
+        showMessage(getTranslation('noStudentSelected'));
         return;
     }
     
     // Reset the form without saving
     resetAnalysis();
-    showMessage('Attendance rejected. Ready for next student.');
+    showMessage(getTranslation('attendanceRejected'));
 }
 
 // Function to clear all exam checkboxes
@@ -875,10 +973,12 @@ function clearExamSelections() {
         checkbox.checked = false;
     });
     
-    // Update the selected count display
+    // Update the selected count display with language support
     const selectedCount = document.getElementById('selectedCount');
     if (selectedCount) {
-        selectedCount.textContent = '0 selected';
+        const lang = localStorage.getItem('preferredLanguage') || 'en';
+        const suffix = selectedCount.getAttribute(`data-${lang}-prefix`) || '';
+        selectedCount.textContent = `0 ${suffix}`;
     }
 }
 
@@ -887,7 +987,7 @@ async function saveStudentData(studentData) {
     similarityResults.innerHTML += `
         <div id="savingContainer" class="loading-container">
             <div class="loader"></div>
-            <span>Saving attendance data...</span>
+            <span>${getTranslation('savingAttendance')}</span>
         </div>
     `;
 
@@ -918,7 +1018,7 @@ async function saveStudentData(studentData) {
             similarityResults.innerHTML += `
                 <div class="success-message">
                     <i class="fas fa-check-circle"></i>
-                    Attendance successfully saved!
+                    ${getTranslation('attendanceSaved')}
                 </div>
             `;
             
@@ -948,3 +1048,37 @@ async function saveStudentData(studentData) {
         `;
     }
 }
+
+// Add a language change event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+    
+    // Listen for language changes and update dynamic content
+    window.addEventListener('languageChanged', function(e) {
+        // Update the selected count text when language changes
+        const selectedCount = document.getElementById('selectedCount');
+        if (selectedCount) {
+            const count = document.querySelectorAll('.exam-checkbox:checked').length;
+            const lang = localStorage.getItem('preferredLanguage') || 'en';
+            const suffix = selectedCount.getAttribute(`data-${lang}-prefix`) || '';
+            selectedCount.textContent = `${count} ${suffix}`;
+        }
+        
+        // Update analysis results if they exist
+        if (similarityResults.innerHTML.includes(getTranslation('studentInformation')) || 
+            similarityResults.innerHTML.includes(getTranslation('documentInformation'))) {
+            // If we have results displayed, refresh them with new language
+            if (schoolNumber) {
+                if (isFaceAnalyzed) {
+                    analyzeFace();
+                } else if (documentAnalysisResults) {
+                    analyzeDocument();
+                } else {
+                    searchStudentByNumber(schoolNumber);
+                }
+            }
+        }
+    });
+    
+    // ...existing code...
+});

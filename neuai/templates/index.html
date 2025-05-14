@@ -10,6 +10,12 @@
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
 </head>
 <body>
+    <!-- Language selector -->
+    <div class="language-selector">
+        <button class="language-btn active" data-lang="en">English</button>
+        <button class="language-btn" data-lang="tr">Türkçe</button>
+    </div>
+
     <div class="container">
         <header class="header">
             <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="logo">
@@ -19,7 +25,7 @@
             <section class="video-section">
                 <div class="video-container">
                     <div id="placeholderImage" class="placeholder-image">
-                        <i class="fas fa-video"></i> Video not started
+                        <i class="fas fa-video"></i> <span data-en="Video not started" data-tr="Video başlatılmadı">Video not started</span>
                     </div>
                     <img id="videoFeed" src="" alt="Video Stream" style="display: none;" 
                     data-video-url="{{ url_for('video_feed') }}">
@@ -31,19 +37,19 @@
                     <div class="controls-primary">
                         <button id="startButton" class="btn btn-start">
                             <i class="fas fa-play"></i>
-                            Start Stream
+                            <span data-en="Start Stream" data-tr="Yayını Başlat">Start Stream</span>
                         </button>
                         <button id="stopButton" class="btn btn-stop" style="display: none;">
                             <i class="fas fa-stop"></i>
-                            Stop Video
+                            <span data-en="Stop Video" data-tr="Videoyu Durdur">Stop Video</span>
                         </button>
-                        <button id="confirmButton" class="btn btn-confirm btn-icon" title="Confirm Attendance" disabled>
+                        <button id="confirmButton" class="btn btn-confirm btn-icon" title="Confirm Attendance" data-title-en="Confirm Attendance" data-title-tr="Katılımı Onayla" disabled>
                             <i class="fas fa-check"></i>
                         </button>
-                        <button id="rejectButton" class="btn btn-reject btn-icon" title="Reject Attendance" disabled>
+                        <button id="rejectButton" class="btn btn-reject btn-icon" title="Reject Attendance" data-title-en="Reject Attendance" data-title-tr="Katılımı Reddet" disabled>
                             <i class="fas fa-times"></i>
                         </button>
-                        <button id="resetButton" class="btn btn-icon btn-danger" title="Reset Analysis" disabled>
+                        <button id="resetButton" class="btn btn-icon btn-danger" title="Reset Analysis" data-title-en="Reset Analysis" data-title-tr="Analizi Sıfırla" disabled>
                             <i class="fas fa-redo"></i>
                         </button>
                     </div>
@@ -52,11 +58,11 @@
                         <div class="btn-group">
                             <button id="faceAnalyzeButton" class="btn btn-analyze" disabled>
                                 <i class="fas fa-user"></i>
-                                Face
+                                <span data-en="Face" data-tr="Yüz">Face</span>
                             </button>
                             <button id="documentAnalyzeButton" class="btn btn-analyze" disabled>
                                 <i class="fas fa-file-alt"></i>
-                                Document
+                                <span data-en="Document" data-tr="Belge">Document</span>
                             </button>
                         </div>
                     </div>
@@ -64,7 +70,7 @@
                     <div class="exit-button-container" style="margin-top: 15px; text-align: center;">
                         <a href="{{ url_for('intro') }}" class="btn btn-exit transition">
                             <i class="fas fa-sign-out-alt"></i>
-                            Exit System
+                            <span data-en="Exit System" data-tr="Sistemden Çık">Exit System</span>
                         </a>
                     </div>
                 </div>
@@ -75,19 +81,19 @@
             <section class="results-section">
                 <h2>
                     <i class="fas fa-chart-bar"></i>
-                    Analysis Results
+                    <span data-en="Analysis Results" data-tr="Analiz Sonuçları">Analysis Results</span>
                 </h2>
-                <p>Document and Face Recognition</p>
+                <p data-en="Document and Face Recognition" data-tr="Belge ve Yüz Tanıma">Document and Face Recognition</p>
                 
                 <div class="tools-container">
                     <!-- Student Search Section -->
                     <div class="tool-section full-width">
-                        <h3><i class="fas fa-search"></i> Student Search</h3>
+                        <h3><i class="fas fa-search"></i> <span data-en="Student Search" data-tr="Öğrenci Arama">Student Search</span></h3>
                         <div class="search-form">
                             <div class="search-input-wrapper">
                                 <label for="schoolNumber" class="search-label">
                                     <i class="fas fa-id-card"></i>
-                                    Enter School Number
+                                    <span data-en="Enter School Number" data-tr="Okul Numarası Girin">Enter School Number</span>
                                 </label>
                                 <input type="text" 
                                        name="schoolNumber" 
@@ -98,14 +104,14 @@
                             </div>
                             <button type="button" class="btn btn-search" onclick="handleSearch()">
                                 <i class="fas fa-search"></i>
-                                Search Student
+                                <span data-en="Search Student" data-tr="Öğrenci Ara">Search Student</span>
                             </button>
                         </div>
                     </div>
                     
                     <!-- Export to Excel Button and Exam Selection -->
                     <div class="tool-section full-width">
-                        <h3><i class="fas fa-file-export"></i> Export Data</h3>
+                        <h3><i class="fas fa-file-export"></i> <span data-en="Export Data" data-tr="Veri Dışa Aktar">Export Data</span></h3>
                         <div class="search-form">
                             <div class="search-input-wrapper">
                                 <div class="collapsible-section">
@@ -113,9 +119,9 @@
                                         <div class="toggle-content">
                                             <div>
                                                 <i class="fas fa-clipboard-list"></i>
-                                                <span>Select Exams</span>
+                                                <span data-en="Select Exams" data-tr="Sınavları Seç">Select Exams</span>
                                             </div>
-                                            <span id="selectedCount" class="exam-counter">0 selected</span>
+                                            <span id="selectedCount" class="exam-counter" data-en-prefix="selected" data-tr-prefix="seçildi">0 selected</span>
                                         </div>
                                         <i class="fas fa-chevron-down toggle-icon"></i>
                                     </button>
@@ -127,17 +133,17 @@
                                                 <div class="course-header">
                                                     <label class="checkbox-label select-all-label">
                                                         <input type="checkbox" class="select-all-course" data-course="AIT101">
-                                                        <span>AIT101 (All)</span>
+                                                        <span>AIT101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
                                                     </label>
                                                 </div>
                                                 <div class="exam-checkbox-list">
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="AIT101_Midterm" class="exam-checkbox" data-course="AIT101">
-                                                        <span>Midterm</span>
+                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
                                                     </label>
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="AIT101_Final" class="exam-checkbox" data-course="AIT101">
-                                                        <span>Final</span>
+                                                        <span data-en="Final" data-tr="Final">Final</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -147,17 +153,17 @@
                                                 <div class="course-header">
                                                     <label class="checkbox-label select-all-label">
                                                         <input type="checkbox" class="select-all-course" data-course="AIT102">
-                                                        <span>AIT102 (All)</span>
+                                                        <span>AIT102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
                                                     </label>
                                                 </div>
                                                 <div class="exam-checkbox-list">
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="AIT102_Midterm" class="exam-checkbox" data-course="AIT102">
-                                                        <span>Midterm</span>
+                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
                                                     </label>
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="AIT102_Final" class="exam-checkbox" data-course="AIT102">
-                                                        <span>Final</span>
+                                                        <span data-en="Final" data-tr="Final">Final</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -167,17 +173,17 @@
                                                 <div class="course-header">
                                                     <label class="checkbox-label select-all-label">
                                                         <input type="checkbox" class="select-all-course" data-course="TUR101">
-                                                        <span>TUR101 (All)</span>
+                                                        <span>TUR101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
                                                     </label>
                                                 </div>
                                                 <div class="exam-checkbox-list">
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="TUR101_Midterm" class="exam-checkbox" data-course="TUR101">
-                                                        <span>Midterm</span>
+                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
                                                     </label>
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="TUR101_Final" class="exam-checkbox" data-course="TUR101">
-                                                        <span>Final</span>
+                                                        <span data-en="Final" data-tr="Final">Final</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -187,17 +193,17 @@
                                                 <div class="course-header">
                                                     <label class="checkbox-label select-all-label">
                                                         <input type="checkbox" class="select-all-course" data-course="TUR102">
-                                                        <span>TUR102 (All)</span>
+                                                        <span>TUR102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
                                                     </label>
                                                 </div>
                                                 <div class="exam-checkbox-list">
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="TUR102_Midterm" class="exam-checkbox" data-course="TUR102">
-                                                        <span>Midterm</span>
+                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
                                                     </label>
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="TUR102_Final" class="exam-checkbox" data-course="TUR102">
-                                                        <span>Final</span>
+                                                        <span data-en="Final" data-tr="Final">Final</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -207,17 +213,17 @@
                                                 <div class="course-header">
                                                     <label class="checkbox-label select-all-label">
                                                         <input type="checkbox" class="select-all-course" data-course="ENG101">
-                                                        <span>ENG101 (All)</span>
+                                                        <span>ENG101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
                                                     </label>
                                                 </div>
                                                 <div class="exam-checkbox-list">
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="ENG101_Midterm" class="exam-checkbox" data-course="ENG101">
-                                                        <span>Midterm</span>
+                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
                                                     </label>
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="ENG101_Final" class="exam-checkbox" data-course="ENG101">
-                                                        <span>Final</span>
+                                                        <span data-en="Final" data-tr="Final">Final</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -227,32 +233,36 @@
                                                 <div class="course-header">
                                                     <label class="checkbox-label select-all-label">
                                                         <input type="checkbox" class="select-all-course" data-course="ENG102">
-                                                        <span>ENG102 (All)</span>
+                                                        <span>ENG102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
                                                     </label>
                                                 </div>
                                                 <div class="exam-checkbox-list">
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="ENG102_Midterm" class="exam-checkbox" data-course="ENG102">
-                                                        <span>Midterm</span>
+                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
                                                     </label>
                                                     <label class="checkbox-label">
                                                         <input type="checkbox" name="exam" value="ENG102_Final" class="exam-checkbox" data-course="ENG102">
-                                                        <span>Final</span>
+                                                        <span data-en="Final" data-tr="Final">Final</span>
                                                     </label>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <div class="exam-actions">
-                                            <button type="button" id="selectAllExams" class="btn btn-sm">Select All</button>
-                                            <button type="button" id="clearAllExams" class="btn btn-sm btn-outline">Clear</button>
+                                            <button type="button" id="selectAllExams" class="btn btn-sm">
+                                                <span data-en="Select All" data-tr="Tümünü Seç">Select All</span>
+                                            </button>
+                                            <button type="button" id="clearAllExams" class="btn btn-sm btn-outline">
+                                                <span data-en="Clear" data-tr="Temizle">Clear</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <button type="button" id="exportExcelBtn" class="btn btn-export">
                                 <i class="fas fa-file-excel"></i>
-                                Export to Excel
+                                <span data-en="Export to Excel" data-tr="Excel'e Aktar">Export to Excel</span>
                             </button>
                         </div>
                     </div>
@@ -260,7 +270,7 @@
 
                 <div id="similarityResults">
                     <div class="result-item">
-                        <p>No analysis done yet</p>
+                        <p data-en="No analysis done yet" data-tr="Henüz analiz yapılmadı">No analysis done yet</p>
                     </div>
                 </div>
             </section>
@@ -268,5 +278,75 @@
     </div>
     <script src="{{ url_for('static', filename='/js/script.js') }}"></script>
     <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
+    <script>
+        // Language switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageButtons = document.querySelectorAll('.language-btn');
+            
+            // Function to update all text content based on selected language
+            function updateLanguage(lang) {
+                // Update elements with data-en and data-tr attributes
+                document.querySelectorAll('[data-en][data-tr]').forEach(element => {
+                    element.textContent = element.getAttribute(`data-${lang}`);
+                });
+                
+                // Update button titles
+                document.querySelectorAll('[data-title-en][data-title-tr]').forEach(element => {
+                    element.title = element.getAttribute(`data-title-${lang}`);
+                });
+                
+                // Update selected count text - FIXED for proper number display
+                const selectedCount = document.getElementById('selectedCount');
+                if (selectedCount) {
+                    // Extract just the number from the current text
+                    const countMatch = selectedCount.textContent.match(/(\d+)/);
+                    const count = countMatch ? countMatch[1] : '0';
+                    
+                    // Get the appropriate suffix for the language
+                    const suffix = selectedCount.getAttribute(`data-${lang}-prefix`) || '';
+                    
+                    // Apply the new format with number and suffix
+                    selectedCount.textContent = `${count} ${suffix}`;
+                }
+                
+                // Dispatch language change event for dynamic content
+                window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang } }));
+            }
+            
+            // Language switcher functionality
+            languageButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const lang = this.getAttribute('data-lang');
+                    
+                    // Remove active class from all buttons
+                    languageButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Set language in localStorage
+                    localStorage.setItem('preferredLanguage', lang);
+                    
+                    // Update text content based on language
+                    updateLanguage(lang);
+                });
+            });
+            
+            // Load preferred language or default to English
+            const savedLanguage = localStorage.getItem('preferredLanguage') || 'en';
+            
+            // Set active button - Fixed to avoid using invalid selector
+            languageButtons.forEach(btn => {
+                if (btn.getAttribute('data-lang') === savedLanguage) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Apply saved language
+            updateLanguage(savedLanguage);
+        });
+    </script>
 </body>
 </html>
