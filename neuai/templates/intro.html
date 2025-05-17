@@ -9,53 +9,91 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/intro.css') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
     <style>
+        /* Main layout styles */
         .intro-body {
             background-image: url("{{ url_for('static', filename='assets/İnovasyon_-1.jpg') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            /* Add blur effect to background image */
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
         
+        /* Container styles */
         .intro-container {
             background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay for better readability */
             border-radius: 10px;
-            padding: 20px;
+            padding: 1.5rem; /* Reduced padding */
             backdrop-filter: blur(5px);
+            max-width: 400px; /* Reduced from 500px */
+            width: 100%;
+            margin: 20px auto;
+            min-height: min-content;
+            box-sizing: border-box;
         }
         
         .intro-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem; /* Reduced from 1rem */
+            padding: 1rem; /* Reduced from 1.5rem */
             color: white; /* Ensuring text is visible on the background */
         }
         
         .intro-description {
             color: #f0f0f0;
+            font-size: 0.9rem; /* Reduced from 1.1rem */
+            margin: 0.3rem 0; /* Reduced margins */
+            line-height: 1.3;
         }
 
-        /* Password input styles */
+        /* Form elements */
         .password-form {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 1.5rem;
-            gap: 1rem;
+            margin-top: 0.3rem; /* Reduced from 0.5rem */
+            gap: 0.8rem; /* Reduced from 1rem */
+            width: 100%;
+            max-width: 300px;
         }
 
+        .password-field-container {
+            position: relative;
+            width: 240px; /* Increased width to match buttons */
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem; /* Add space between input and button */
+        }
+        
         .password-input {
+            width: 100%;
             background-color: rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
             color: white;
-            font-size: 1.5rem;
-            letter-spacing: 0.5rem;
-            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            letter-spacing: 0.5rem; /* Move this here from [type="password"] */
+            padding: 0 2.5rem 0 1rem; /* Adjust padding to be even on both sides */
             text-align: center;
-            width: 200px;
-            margin-bottom: 1rem;
-            padding-right: 2.5rem; /* Add extra padding on the right for the eye icon */
+            height: 48px;
+            box-sizing: border-box;
+            text-indent: 0.8rem; /* Add text indent to center the input value */
+            font-family: monospace; /* Move this here from [type="password"] */
+        }
+
+        /* Remove the type="password" specific styles since we want consistent styling */
+        .password-input[type="text"] {
+            font-family: monospace; /* Keep same font when visible */
+            letter-spacing: 0.5rem; /* Keep same spacing when visible */
         }
 
         .password-input::placeholder {
@@ -70,20 +108,36 @@
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
-        .submit-button {
+        .submit-button, .admin-button {
+            width: 240px; /* Match width with input field */
+            height: 48px; /* Fixed height */
+            justify-content: center;
+            padding: 0 1.5rem; /* Adjust padding to use fixed width */
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 1.2rem;
             font-weight: 500;
-            padding: 0.8rem 2rem;
             border-radius: 8px;
             text-decoration: none;
             transition: all 0.3s ease;
+            position: relative; /* Add this */
+            font-size: 1rem; /* Standardize font size */
+        }
+
+        .submit-button i, .admin-button i {
+            margin-right: 8px; /* Replace absolute positioning with margin */
+            position: static; /* Remove absolute positioning */
+            font-size: 1rem; /* Match icon size */
+        }
+
+        .submit-button span, .admin-button span {
+            margin-left: 0; /* Remove offset since we're not using absolute positioning */
+        }
+
+        /* Update specific button styles */
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
             border: none;
-            cursor: pointer;
         }
 
         .submit-button:hover {
@@ -92,9 +146,21 @@
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
 
-        .submit-button i {
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
+        .admin-button {
+            background-color: rgba(255, 193, 7, 0.8); /* Yellow background */
+            color: #000; /* Black text for better contrast on yellow */
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            margin-top: 0.5rem;
+        }
+
+        .admin-button:hover {
+            background-color: rgba(255, 193, 7, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
+        .admin-button i {
+            color: #000; /* Black icon for better contrast */
         }
 
         .error-message {
@@ -105,22 +171,10 @@
         }
         
         /* Password visibility toggle styles - centered vertically */
-        .password-field-container {
-            position: relative;
-            width: 200px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .password-input {
-            position: relative;
-            z-index: 1;
-        }
-        
         .password-toggle {
             position: absolute;
             right: 10px;
-            top: 40%;
+            top: 50%; /* Change from 40% to 50% */
             transform: translateY(-50%); 
             width: 30px;
             height: 30px;
@@ -134,54 +188,98 @@
             align-items: center;
             justify-content: center;
             pointer-events: all;
+            padding: 0; /* Add this to remove any default padding */
         }
         
         .password-toggle:hover {
             color: white;
         }
 
-        /* Language selector styles */
+        /* Dil seçici düğmeleri */
         .language-selector {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            position: static;
+            margin: 1rem 0;
             display: flex;
-            gap: 10px;
+            gap: 8px; /* Reduced from 10px for better alignment */
             z-index: 100;
+            overflow: hidden; /* Add this to prevent pixel overflow */
         }
         
         .language-btn {
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
-            padding: 5px 10px;
+            border: none;
+            border-radius: 16px;
+            padding: 8px 16px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
+            font-weight: 500;
+            min-width: 80px;
+            margin: 0; /* Add this to remove any default margins */
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
-        
-        .language-btn:hover {
-            background-color: rgba(255, 255, 255, 0.3);
+
+        .intro-logo {
+            width: 200px; /* Reduced logo size */
+            margin-bottom: 1rem;
         }
-        
-        .language-btn.active {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+
+        .intro-title {
+            font-size: 1.5rem; /* Reduced from 2rem */
+            margin: 0; /* Removed margins */
+            line-height: 1.2;
+        }
+
+        /* Mobile layout */
+        @media (max-width: 768px) {
+            .intro-content {
+                gap: 1.5rem;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .intro-body {
+                padding: 10px;
+            }
+
+            .intro-container {
+                margin: 10px auto;
+                padding: 1rem;
+            }
+
+            .password-field-container,
+            .submit-button,
+            .admin-button {
+                width: 100%;
+                max-width: 240px;
+            }
+
+            .intro-logo {
+                width: 150px;
+            }
         }
     </style>
 </head>
 <body class="intro-body">
-    <div class="language-selector">
-        <button class="language-btn active" data-lang="en">English</button>
-        <button class="language-btn" data-lang="tr">Türkçe</button>
-    </div>
-    
     <div class="intro-container">
         <div class="intro-content">
-            <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="intro-logo">
-            <h1 class="intro-title" data-en="Authorized Access Required" data-tr="Yetkili Erişim Gerekiyor">Authorized Access Required</h1>
-            <p class="intro-description" data-en="This system is restricted to authorized personnel only. Please enter the password." data-tr="Bu sistem yalnızca yetkili personel ile sınırlıdır. Lütfen şifreyi giriniz.">This system is restricted to authorized personnel only. Please enter the password.</p>
+            <img src="{{ url_for('static', filename='assets/new_logo.png') }}" alt="NEUAI.NA logo" class="intro-logo">
+            
+            <div class="language-selector">
+                <button class="language-btn active" data-lang="en">English</button>
+                <button class="language-btn" data-lang="tr">Türkçe</button>
+            </div>
+
+            <div class="text-center" style="margin-bottom: 0;">
+                <h1 class="intro-title" data-en="Authorized Access Required" data-tr="Yetkili Erişim Gerekiyor">Authorized Access Required</h1>
+                <p class="intro-description" data-en="This system is restricted to authorized personnel only. Please enter the password." data-tr="Bu sistem yalnızca yetkili personel ile sınırlıdır. Lütfen şifreyi giriniz.">This system is restricted to authorized personnel only. Please enter the password.</p>
+            </div>
             
             <form id="passwordForm" class="password-form" data-redirect="{{ url_for('index') }}">
                 <div class="password-field-container">
@@ -190,18 +288,22 @@
                         <i class="fas fa-eye" id="passwordToggleIcon"></i>
                     </button>
                 </div>
-                <div id="errorMessage" class="error-message" data-en="Incorrect password. Please try again." data-tr="Yanlış şifre. Lütfen tekrar deneyiniz.">Incorrect password. Please try again.</div>
                 <button type="submit" class="submit-button transition">
                     <i class="fas fa-lock" id="lockIcon"></i>
-                    <span data-en="Verify Access" data-tr="Erişimi Doğrula">Verify Access</span>
+                    <span data-en="Login" data-tr="Giriş Yap">Login</span>
                 </button>
+                <button type="button" class="admin-button transition" onclick="checkAdminAccess()">
+                    <i class="fas fa-user-shield"></i>
+                    <span data-en="Admin Panel" data-tr="Yönetici Paneli">Admin Panel</span>
+                </button>
+                <div id="errorMessage" class="error-message" data-en="Incorrect password. Please try again." data-tr="Yanlış şifre. Lütfen tekrar deneyiniz.">Incorrect password. Please try again.</div>
             </form>
         </div>
     </div>
     <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
     <script src="{{ url_for('static', filename='/js/password-toggle.js') }}"></script>
     <script>
-        // Language switching functionality
+        // Language switch functionality
         document.addEventListener('DOMContentLoaded', function() {
             const languageButtons = document.querySelectorAll('.language-btn');
             const passwordForm = document.getElementById('passwordForm');
@@ -278,6 +380,16 @@
                 });
             }
         });
+
+        // Admin access validation
+        function checkAdminAccess() {
+            const adminPassword = prompt('Please enter admin password:');
+            if (adminPassword === '1408') {  // Use same password or different one as needed
+                window.location.href = '/admin';
+            } else {
+                alert('Incorrect admin password');
+            }
+        }
     </script>
 </body>
 </html>
