@@ -166,3 +166,4 @@ cython_debug/
 
 # Attendance folder
 neuai/static/attendance/
+neuai/static/studentData/

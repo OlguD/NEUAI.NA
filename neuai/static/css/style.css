@@ -3,11 +3,16 @@
     --secondary-color: #1e40af;
     --success-color: #16a34a;
     --danger-color: #dc2626;
-    --background-color: #f8fafc;
-    --card-background: #ffffff;
+    --background-color: #f0f4f8;
+    --card-background: #fff;
     --text-color: #1e293b;
-    --border-radius: 12px;
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius: 14px;
+    --shadow: 0 4px 16px 0 rgba(30,41,59,0.07), 0 1.5px 4px 0 rgba(0,0,0,0.04);
+
+    --primary-muted: #e5e7eb;
+    --primary-light: #f8fafc;
+    --primary-dark: #1e293b;
+    --accent: #64748b;
 }
 
 * {
@@ -70,7 +75,11 @@
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--background-color);
-    color: var(--text-color);
+    background-image: url('../assets/background.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--primary-dark);
     line-height: 1.6;
     min-height: 100vh;
     padding: 2rem 0;
@@ -82,10 +91,22 @@ body {
     perspective: 1000px;
 }
 
+/* Overlay to improve text readability on top of background image */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(240, 244, 248, 0.85); /* Slightly transparent version of background-color */
+    z-index: -1;
+}
+
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.5rem;
 }
 
 .header {
@@ -93,30 +114,131 @@ body {
     padding: 0;
 }
 
-
 .header h1 {
     font-size: 2rem;
-    color: var(--text-color);
+    color: var(--primary-dark);
     margin-bottom: 0.5rem;
 }
 
 .header p {
-    color: #64748b;
+    color: var(--accent);
     font-size: 1.1rem;
 }
 
 .main-content {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    align-items: start;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.2rem;
+    align-items: flex-start; /* Tüm kartların üstü aynı hizada başlasın */
+}
+
+/* Orta kolon (öğrenci bilgi kartı) */
+.student-info-section {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: flex-start;
+    /* Kartların üst kenarları aynı hizada başlasın */
+}
+
+.student-info-card {
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px rgba(30,41,59,0.08);
+    padding: 1.1rem 0.7rem;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.student-info-card h3 {
+    font-size: 1.15rem;
+    color: var(--text-color);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.student-info-card h4 {
+    font-size: 1rem;
+    color: var(--primary-color);
+    margin: 1.2rem 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.student-field {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.student-label {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.student-value {
+    color: var (--primary-color);
+    font-weight: 600;
+}
+
+.student-image {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.student-image img {
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    width: 120px;
+    height: 150px;
+    object-fit: cover;
+    background: #f1f5f9;
+}
+
+.student-result {
+    width: 100%;
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.student-result-value {
+    font-weight: 600;
+}
+
+/* Responsive: 3 kolondan 1 kolona düş */
+@media (max-width: 1100px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    .student-info-section {
+        margin: 2rem 0;
+    }
 }
 
 .video-section {
     background: var(--card-background);
-    padding: 1.5rem;
+    padding: 1.1rem 0.7rem;
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    box-shadow: 0 2px 8px rgba(30,41,59,0.08);
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: flex-start;
+    /* Kartların üst kenarları aynı hizada başlasın */
 }
 
 .video-container {
@@ -158,8 +280,7 @@ body {
 
 .btn {
     padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius);
+    border: 1.5px solid var(--primary-muted);
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
@@ -169,11 +290,17 @@ body {
     gap: 0.5rem;
     min-width: 140px;
     justify-content: center;
+    background: #fff;
+    color: var(--primary-dark);
+    box-shadow: none;
 }
 
 .btn:hover {
     transform: translateY(-1px);
-    filter: brightness(110%);
+    filter: brightness(105%);
+    background: var(--primary-muted);
+    color: var(--primary-dark);
+    border-color: var(--accent);
 }
 
 .btn:disabled {
@@ -185,24 +312,40 @@ body {
 .btn-start {
     background-color: var(--success-color);
     color: white;
+    border: none;
 }
 
 .btn-stop {
     background-color: var(--danger-color);
     color: white;
+    border: none;
 }
 
 .btn-analyze {
-    background-color: var(--primary-color);
-    color: white;
+    background: #fff;
+    color: var (--primary-dark);
+    border: 1.5px solid var(--primary-muted);
+}
+
+.btn-analyze.active,
+.btn-analyze:hover:not(:disabled) {
+    background: var(--primary-muted);
+    color: var(--primary-dark);
+    border-color: var(--accent);
 }
 
 .results-section {
     background: var(--card-background);
-    padding: 1.5rem;
+    padding: 1.1rem 0.7rem;
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    box-shadow: 0 2px 8px rgba(30,41,59,0.08);
     height: fit-content;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: flex-start;
+    /* Kartların üst kenarları aynı hizada başlasın */
 }
 
 .results-section h2 {
@@ -243,11 +386,11 @@ body {
 }
 
 .error-message {
+    background: #fbeaea;
     color: var(--danger-color);
-    background: #fee2e2;
-    padding: 1rem;
-    border-radius: calc(var(--border-radius) - 4px);
-    margin-top: 1rem;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -256,6 +399,7 @@ body {
 @media (max-width: 768px) {
     .main-content {
         grid-template-columns: 1fr;
+        /* Mobilde yine alt alta */
     }
     
     .container {
@@ -327,13 +471,11 @@ body {
     color: #64748b;
 }
 
-
 .logo {
     width: 250px; 
     width: 250px;      
     margin-bottom: 20px;
 }
-
 
 .loader {
     width: 35px;
@@ -373,7 +515,6 @@ body {
     gap: 12px; /* loader ile yazı arasındaki boşluk */
 }
 
-
 .student-image {
     margin: 10px 0;
     display: flex;
@@ -384,7 +525,6 @@ body {
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 
 .btn-danger {
     background-color: #dc2626;
@@ -404,7 +544,6 @@ body {
 .btn-danger:hover i {
     transform: rotate(360deg);
 }
-
 
 .controls-wrapper {
     display: flex;
@@ -436,8 +575,7 @@ body {
 
 .btn {
     padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius);
+    border: 1.5px solid var(--primary-muted);
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
@@ -478,19 +616,16 @@ body {
 }
 
 .btn-analyze {
-    background-color: white;
-    color: var(--text-color);
-    min-width: 100px;
+    background: #fff;
+    color: var(--primary-dark);
+    border: 1.5px solid var(--primary-muted);
 }
 
+.btn-analyze.active,
 .btn-analyze:hover:not(:disabled) {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.btn-analyze.active {
-    background-color: var(--primary-color);
-    color: white;
+    background: var(--primary-muted);
+    color: var(--primary-dark);
+    border-color: var(--accent);
 }
 
 .btn-icon {
@@ -499,12 +634,13 @@ body {
     height: 42px;
     padding: 0;
     border-radius: 50%;
-    background-color: #fee2e2;
-    color: #dc2626;
+    background-color: var(--primary-muted);
+    color: var(--danger-color);
+    border: none;
 }
 
 .btn-icon:hover {
-    background-color: #dc2626;
+    background-color: var(--danger-color);
     color: white;
 }
 
@@ -515,6 +651,7 @@ body {
 /* Update tools container to remove grid */
 .tools-container {
     margin-bottom: 2rem;
+    margin-top: 1rem; /* Add space above student search */
 }
 
 /* Add full-width class */
@@ -523,10 +660,11 @@ body {
 }
 
 .tool-section {
-    background: #f8fafc;
+    background: var(--card-background);
     padding: 1.5rem;
     border-radius: var(--border-radius);
     height: 100%;
+    margin-bottom: 1.5rem; /* Add more space below each tool section */
 }
 
 /* Update search form for better spacing */
@@ -715,15 +853,20 @@ body {
 
 /* Style the export button to match search button */
 .btn-export {
-    background-color: var(--primary-color);
-    color: white;
-    width: 100%;
+    background: var(--primary-dark);
+    color: #fff;
+    border: none;
+}
+
+.btn-export:hover {
+    background: var(--accent);
+    color: #fff;
 }
 
 /* Exam Checkbox Styling */
 .exam-checkbox-container {
-    background-color: white;
-    border: 2px solid #e2e8f0;
+    background-color: var(--primary-light);
+    border: 2px solid var(--primary-muted);
     border-radius: var(--border-radius);
     padding: 1rem;
     max-height: 300px;
@@ -763,8 +906,9 @@ body {
     user-select: none;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    background-color: #f8fafc;
+    background-color: var(--primary-light);
     transition: all 0.2s ease;
+    color: var(--primary-dark);
 }
 
 .checkbox-label:hover {
@@ -786,8 +930,8 @@ body {
 }
 
 .checkbox-label input[type="checkbox"]:checked {
-    border-color: var(--primary-color);
-    background-color: var(--primary-color);
+    border-color: var(--primary-dark);
+    background-color: var(--primary-dark);
 }
 
 .checkbox-label input[type="checkbox"]::before {
@@ -807,8 +951,8 @@ body {
 
 /* Enhanced Exam Checkbox Styling */
 .exam-checkbox-container {
-    background-color: white;
-    border: 2px solid #e2e8f0;
+    background-color: var(--primary-light);
+    border: 2px solid var(--primary-muted);
     border-radius: var(--border-radius);
     padding: 1rem;
     max-height: 300px;
@@ -842,10 +986,11 @@ body {
 .exam-counter {
     background-color: #e0e7ff;
     color: var(--primary-color);
-    padding: 0.25rem 0.5rem;
+    padding: 0.15rem 0.4rem;
     border-radius: 999px;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 500;
+    transition: all 0.3s ease;
 }
 
 .course-header {
@@ -985,7 +1130,7 @@ body {
     border-radius: 4px;
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem; /* Reduced font size */
+    font-size: 0.95rem; /* Slightly increased for better hierarchy */
 }
 
 .exam-checkbox-list {
@@ -996,8 +1141,8 @@ body {
 }
 
 .exam-checkbox-list .checkbox-label {
-    font-size: 0.8rem; /* Even smaller font for exam items */
-    padding: 0.2rem 0.4rem; /* Reduced padding */
+    font-size: 0.9rem; /* Increased from 0.75rem */
+    padding: 0.2rem 0.4rem;
 }
 
 .checkbox-label {
@@ -1031,8 +1176,8 @@ body {
 }
 
 .checkbox-label input[type="checkbox"]:checked {
-    border-color: var(--primary-color);
-    background-color: var(--primary-color);
+    border-color: var(--primary-dark);
+    background-color: var(--primary-dark);
 }
 
 .checkbox-label input[type="checkbox"]::before {
@@ -1201,6 +1346,7 @@ body {
 .btn-confirm {
     background-color: #16a34a;
     color: white;
+    border: none;
 }
 
 .btn-confirm:hover:not(:disabled) {
@@ -1210,6 +1356,7 @@ body {
 .btn-reject {
     background-color: #dc2626;
     color: white;
+    border: none;
 }
 
 .btn-reject:hover:not(:disabled) {
@@ -1247,4 +1394,1026 @@ body {
     display: flex;
     justify-content: center;
     width: 100%;
+}
+
+/* ...existing code... */
+
+.stylish-info-card {
+    background: linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%);
+    border-radius: 18px;
+    box-shadow: 0 6px 24px 0 rgba(37,99,235,0.07), 0 1.5px 4px 0 rgba(0,0,0,0.04);
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+    max-width: 370px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1.5px solid #e0e7ff;
+    position: relative;
+    transition: box-shadow 0.2s;
+}
+
+.stylish-info-card:hover {
+    box-shadow: 0 10px 32px 0 rgba(37,99,235,0.13), 0 2px 8px 0 rgba(0,0,0,0.06);
+}
+
+.stylish-title {
+    font-size: 1.6rem;
+    color: var(--primary-dark);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.stylish-divider {
+    width: 60px;
+    height: 4px;
+    background: var(--primary-muted);
+    border-radius: 2px;
+    margin-bottom: 1.2rem;
+}
+
+.stylish-subtitle {
+    color: var(--accent);
+    font-size: 1.08rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    margin-top: 0.7rem;
+    letter-spacing: 0.01em;
+}
+
+.stylish-field {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 1.03rem;
+    background: var(--primary-light);
+    border-radius: 6px;
+    padding: 0.45rem 0.9rem;
+    box-shadow: none;
+}
+
+.stylish-image {
+    margin: 1.1rem 0 1.3rem 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.stylish-image img {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+    width: 120px;
+    height: 150px;
+    object-fit: cover;
+    background: #e0e7ff;
+    border: 2px solid #c7d2fe;
+}
+
+.stylish-result {
+    width: 100%;
+    margin-top: 0.7rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.08rem;
+    background: var(--primary-light);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.student-result-value {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+/* ...existing code... */
+.student-logo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 150px;
+    background: var(--primary-muted);
+    border-radius: 10px;
+    border: 2px solid var(--primary-light);
+    box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+    margin: 0 auto;
+    overflow: hidden;
+}
+.student-logo-placeholder svg {
+    display: block;
+    margin: auto;
+}
+.student-logo-placeholder svg circle,
+.student-logo-placeholder svg ellipse {
+    fill: var(--primary-muted);
+    stroke: var(--primary-dark);
+}
+
+.student-logo-placeholder svg circle:last-child,
+.student-logo-placeholder svg ellipse:last-child {
+    fill: var(--primary-dark);
+}
+
+/* Modal pencere stilleri */
+.exam-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: rgba(30, 41, 59, 0.25);
+    justify-content: center;
+    align-items: center;
+}
+.exam-modal.active {
+    display: flex;
+}
+.exam-modal-content {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(30,41,59,0.10), 0 2px 8px rgba(0,0,0,0.04);
+    padding: 2rem 2rem 1.5rem 2rem;
+    min-width: 340px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+.exam-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    font-size: 2rem;
+    color: var(--accent);
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s;
+}
+.exam-modal-close:hover {
+    color: var(--danger-color);
+}
+.btn-exam-modal {
+    background: var(--primary-muted);
+    color: var(--primary-dark);
+    border: 1.5px solid var(--primary-muted);
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    transition: all 0.3s ease;
+}
+.btn-exam-modal:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+.btn-exam-modal:hover .exam-counter {
+    background-color: white;
+    color: var(--primary-color);
+}
+.exam-modal .exam-checkbox-container {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+.exam-modal .exam-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: flex-end;
+}
+.btn-primary {
+    background: var(--primary-dark);
+    color: #fff;
+    border: none;
+}
+.btn-primary:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.success-message {
+    background: #e6f7e6;
+    color: var(--success-color);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Öğrenci Arama ve Analiz Sonuçları başlıklarını aynı puntoda ve yükseklikte hizala */
+.results-section h3,
+.stylish-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    /* Arka plan ve padding olmadan sade başlık */
+    background: none;
+    color: var(--primary-dark);
+    border-radius: 0;
+    padding: 0;
+}
+
+/* Öğrenci Arama başlığını ortala */
+.results-section h3 {
+    justify-content: center;
+    text-align: center;
+}
+
+/* Yükseklikleri eşitlemek için kartlara min-height ekle */
+.results-section,
+.student-info-card.stylish-info-card {
+    min-height: 370px;
+    /* Aynı yükseklik için gerekirse ayarlayın */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Responsive için de aynı min-height */
+@media (max-width: 1100px) {
+    .results-section,
+    .student-info-card.stylish-info-card {
+        min-height: unset;
+    }
+}
+
+/* Öğrenci ara ve sınavları seç arası ile sınavları seç ve veri dışa aktar arası boşluk eşitliği */
+.tool-section.full-width .search-form {
+    /* Varsayılan gap */
+    gap: 1.2rem;
+}
+
+.tool-section.full-width .search-input-wrapper + h3,
+.tool-section.full-width .btn-exam-modal + h3 {
+    margin-top: 1.2rem !important;
+}
+
+/* Öğrenci ara butonu ile sınavları seç butonu arası boşluk */
+.tool-section.full-width .search-input-wrapper + .btn-exam-modal {
+    margin-top: 1.2rem;
+}
+
+/* Sınavları seç ve veri dışa aktar başlığı arası boşluk */
+.tool-section.full-width .btn-exam-modal + h3 {
+    margin-top: 1.2rem !important;
+}
+
+/* Responsive düzeltme */
+@media (max-width: 768px) {
+    .tool-section.full-width .search-form {
+        gap: 1rem;
+    }
+    .tool-section.full-width .search-input-wrapper + h3,
+    .tool-section.full-width .btn-exam-modal + h3,
+    .tool-section.full-width .search-input-wrapper + .btn-exam-modal {
+        margin-top: 1rem !important;
+    }
+}
+
+/* Kart hover efekti: sonuçlar, öğrenci info, video, tool-section */
+.results-section,
+.student-info-card.stylish-info-card,
+.video-section,
+.tool-section {
+    transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+    box-shadow: 0 2px 8px rgba(30,41,59,0.08);
+    background: var(--card-background);
+    border: 2px solid transparent;
+}
+
+/* Tüm kartlarda aynı hover efekti */
+.results-section:hover,
+.student-info-card.stylish-info-card:hover,
+.video-section:hover,
+.tool-section:hover {
+    box-shadow: 0 8px 32px rgba(30,41,59,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    border-color: var(--primary-color);
+    background: #f5faff;
+    z-index: 2;
+}
+
+/* Sadece .results-section ve .student-info-card.stylish-info-card için border ekle */
+.results-section,
+.student-info-card.stylish-info-card {
+    border: 2px solid transparent;
+    /* Herhangi bir ekstra arka plan veya gradient yok */
+    background: var(--card-background);
+}
+
+.results-section:hover,
+.student-info-card.stylish-info-card:hover {
+    border: 2px solid var(--primary-color);
+    background: #f5faff;
+    /* Herhangi bir ekstra arka plan veya gradient yok */
+}
+
+/* Eğer .stylish-info-card'da gradient varsa kaldırmak için: */
+.stylish-info-card {
+    background: var(--card-background) !important;
+    /* ...existing code... */
+}
+
+/* Öğrenci arama kısmındaki beyaz dikdörtgenleri kaldırmak için */
+.results-section .tools-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    background: none;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.results-section .tool-section.full-width {
+    background: none;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ...existing code... */
+
+/* Öğrenci arama ve kamera başlatma kartlarının aynı boyutta olması için */
+.results-section .tool-section.full-width {
+    /* Arka plan ve kenarlık yok, sadece padding ve genişlik ayarı */
+    background: none;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    max-width: 430px;
+    min-width: 320px;
+    /* Ortalamak için */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Kamera başlatma kartı ile aynı genişlik */
+.video-section {
+    max-width: 430px;
+    min-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive düzeltme */
+@media (max-width: 500px) {
+    .results-section .tool-section.full-width,
+    .video-section {
+        max-width: 100%;
+        min-width: 0;
+    }
+}
+
+/* ...existing code... */
+
+/* Üç kolonun üstlerini ve başlıklarını hizalamak için grid ve başlık ayarları */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.2rem;
+    align-items: flex-start; /* Tüm kartların üstü aynı hizada başlasın */
+}
+
+/* Kartların üst boşluklarını eşitle */
+.results-section,
+.student-info-section,
+.video-section {
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: flex-start;
+    /* Kartların üst kenarları aynı hizada başlasın */
+}
+
+/* Kart içindeki başlıkların hizasını eşitle */
+.results-section .tool-section.full-width h3,
+.student-info-card.stylish-info-card .stylish-title,
+.video-section .video-title {
+    /* Aynı font, aynı margin, aynı padding */
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 0;
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: none;
+    color: var(--primary-dark);
+    border-radius: 0;
+    padding: 0;
+    /* Sol boşlukları eşitlemek için */
+    padding-left: 18px;
+}
+
+/* Öğrenci Arama başlığı ve Analiz Sonuçları başlığı yatayda aynı hizada olsun */
+.results-section .tool-section.full-width h3 {
+    /* Sol padding ile hizala */
+    padding-left: 18px;
+}
+.student-info-card.stylish-info-card .stylish-title {
+    padding-left: 18px;
+}
+
+/* Video başlığı varsa aynı hizaya getir */
+.video-section .video-title {
+    padding-left: 18px;
+}
+
+/* Responsive düzeltme */
+@media (max-width: 1100px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    .results-section,
+    .student-info-section,
+    .video-section {
+        margin-top: 0;
+    }
+    .results-section .tool-section.full-width h3,
+    .student-info-card.stylish-info-card .stylish-title,
+    .video-section .video-title {
+        padding-left: 0;
+    }
+}
+
+/* ...existing code... */
+
+/* ...existing code... */
+.student-image,
+.stylish-image,
+.imageplaceholder {
+    position: relative;
+    width: 120px;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* ...existing code... */
+.student-logo-placeholder {
+    position: absolute;
+    top: 0; left: 0;
+    width: 120px;
+    height: 150px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-muted);
+    border-radius: 10px;
+    border: 2px solid var(--primary-light);
+    box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+    margin: 0 auto;
+    overflow: hidden;
+}
+.student-logo-placeholder svg {
+    display: block;
+    margin: auto;
+}
+/* ...existing code... */
+img.student-photo {
+    position: absolute;
+    top: 0; left: 0;
+    width: 120px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #c7d2fe;
+    z-index: 2;
+}
+/* ...existing code... */
+
+/* Logo styling */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem auto 2rem; /* Reduced margin top and bottom */
+    max-width: 100%;
+}
+
+.main-logo {
+    max-width: 250px; /* Reduced from 350px to 250px */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    transition: transform 0.3s ease;
+}
+
+.main-logo:hover {
+    transform: scale(1.03);
+}
+
+/* Responsive adjustments for the logo */
+@media (max-width: 768px) {
+    .logo-container {
+        margin: 0.8rem auto 1.5rem; /* Further reduced margins */
+    }
+    
+    .main-logo {
+        max-width: 200px; /* Reduced from 280px to 200px */
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-container {
+        margin: 0.6rem auto 1.2rem; /* Further reduced for smaller screens */
+    }
+    
+    .main-logo {
+        max-width: 180px; /* Reduced from 220px to 180px */
+    }
+}
+
+/* Logo styling for inside the student info card */
+.student-info-card .logo-container {
+    display: none;
+}
+
+.student-info-card .main-logo {
+    max-width: 180px; /* Smaller size for the logo inside the card */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    transition: transform 0.3s ease;
+}
+
+.student-info-card .main-logo:hover {
+    transform: scale(1.03);
+}
+
+/* Adjust spacing below the logo */
+.student-info-card .stylish-title {
+    margin-top: 0.5rem;
+}
+
+/* Logo styling for inside the student info card - updated */
+.logo-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 2px solid #e0e7ff;
+    border-radius: 12px;
+    padding: 0.8rem;  /* Reduced padding */
+    margin: 0 auto 1.2rem;
+    max-width: 180px;  /* Reduced max-width from 220px to 180px */
+    box-shadow: 0 2px 8px rgba(37,99,235,0.05);
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(37,99,235,0.15);
+    border-color: var(--primary-color);
+    background-color: white;
+}
+
+.logo-card .main-logo {
+    max-width: 140px;  /* Reduced logo size from 180px to 140px */
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.logo-card:hover .main-logo {
+    transform: scale(1.05);
+}
+
+/* Adjust spacing below the logo */
+.student-info-card .stylish-title {
+    margin-top: 0.5rem;
+}
+
+/* Logo styling for inside the student info card - updated with flip effect */
+.logo-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 2px solid #e0e7ff;
+    border-radius: 12px;
+    padding: 0.8rem;
+    margin: 0 auto 1.2rem;
+    max-width: 180px;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.05);
+    transition: all 0.3s ease;
+    perspective: 1000px; /* For 3D effect */
+    cursor: pointer;
+}
+
+.logo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(37,99,235,0.15);
+    border-color: var(--primary-color);
+}
+
+/* Logo card inner container for flip effect */
+.logo-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+
+.logo-card:hover .logo-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Position the front and back sides */
+.logo-front, .logo-back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Style the front side (default state) */
+.logo-front {
+    z-index: 2;
+}
+
+/* Style the back side (initially hidden) */
+.logo-back {
+    transform: rotateY(180deg);
+}
+
+.logo-card .main-logo {
+    max-width: 140px;
+    max-height: 90px; /* Ensure logo doesn't exceed card height */
+    width: auto;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+    object-fit: contain; /* Maintain aspect ratio */
+}
+
+/* Adjust spacing below the logo */
+.student-info-card .stylish-title {
+    margin-top: 0.5rem;
+}
+
+/* Logo styling for inside the student info card - updated with flip effect */
+.logo-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 2px solid #e0e7ff;
+    border-radius: 12px;
+    padding: 0.6rem;  /* Reduced padding */
+    margin: 0 auto 1.4rem;  /* Increased bottom margin */
+    max-width: 160px;  /* Reduced max-width */
+    width: 100%;
+    height: 90px;  /* Fixed smaller height */
+    box-shadow: 0 2px 8px rgba(37,99,235,0.05);
+    transition: all 0.3s ease;
+    perspective: 1000px; /* For 3D effect */
+    cursor: pointer;
+    overflow: hidden; /* Ensure content doesn't spill out */
+    position: relative; /* Added position relative */
+    z-index: 10; /* Ensure it stays above other elements */
+}
+
+.logo-card:hover {
+    transform: translateY(-3px); /* Reduced transform distance */
+    box-shadow: 0 8px 20px rgba(37,99,235,0.15);
+    border-color: var(--primary-color);
+}
+
+/* Logo card inner container for flip effect */
+.logo-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+
+.logo-card:hover .logo-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Position the front and back sides */
+.logo-front, .logo-back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Style the front side (default state) */
+.logo-front {
+    z-index: 2;
+}
+
+/* Style the back side (initially hidden) */
+.logo-back {
+    transform: rotateY(180deg);
+}
+
+.logo-card .main-logo {
+    max-width: 120px;  /* Reduced logo size */
+    max-height: 70px;  /* Reduced logo height */
+    width: auto;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+    object-fit: contain; /* Maintain aspect ratio */
+}
+
+/* Adjust spacing below the logo */
+.student-info-card .stylish-title {
+    margin-top: 0.7rem;  /* Increased margin-top to account for logo card */
+}
+
+/* Enhanced responsive design for all screen sizes */
+@media (max-width: 1400px) {
+    .container {
+        max-width: 95%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .main-content {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 1100px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .results-section,
+    .student-info-section,
+    .video-section {
+        margin: 1rem auto;
+        max-width: 600px;
+    }
+    
+    .student-info-card.stylish-info-card {
+        max-width: 100%;
+    }
+    
+    .logo-card {
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 1rem 0;
+    }
+    
+    .container {
+        padding: 0 0.8rem;
+    }
+    
+    .main-content {
+        gap: 1rem;
+    }
+    
+    .results-section, 
+    .student-info-section, 
+    .video-section {
+        padding: 1rem 0.6rem;
+        margin: 0.7rem auto;
+        max-width: 100%;
+    }
+    
+    .controls-primary {
+        flex-wrap: wrap;
+        gap: 0.7rem;
+    }
+    
+    .controls-primary button {
+        flex-grow: 1;
+    }
+    
+    .btn-icon {
+        flex-grow: 0 !important;
+        min-width: 42px;
+    }
+    
+    .student-info-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    .student-info-card h4 {
+        font-size: 0.95rem;
+    }
+    
+    .stylish-title {
+        font-size: 1.3rem;
+    }
+    
+    .stylish-subtitle {
+        font-size: 1rem;
+    }
+    
+    .stylish-field, 
+    .stylish-result {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .results-section, 
+    .student-info-section, 
+    .video-section {
+        padding: 0.9rem 0.5rem;
+    }
+    
+    .logo-card {
+        max-width: 140px;
+        height: 80px;
+    }
+    
+    .logo-card .main-logo {
+        max-width: 100px;
+        max-height: 60px;
+    }
+    
+    .student-field, 
+    .student-result {
+        font-size: 0.9rem;
+    }
+    
+    .search-label {
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .exam-modal-content {
+        padding: 1.5rem 1rem;
+        max-width: 95vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .video-container {
+        aspect-ratio: 4/3; /* Change aspect ratio for smaller screens */
+    }
+    
+    .placeholder-image {
+        font-size: 0.9rem;
+    }
+    
+    .results-section h3,
+    .stylish-title,
+    .video-section .video-title {
+        font-size: 1.1rem;
+        padding-left: 10px;
+    }
+    
+    .btn {
+        min-width: unset;
+        width: 100%;
+    }
+    
+    .btn-exam-modal {
+        padding: 0.6rem 0.7rem;
+    }
+    
+    .exam-counter {
+        padding: 0.1rem 0.3rem;
+        font-size: 0.7rem;
+    }
+    
+    .btn-exit {
+        max-width: 100%;
+    }
+    
+    .controls-primary {
+        gap: 0.5rem;
+    }
+    
+    /* Adjust the logo card once more for very small screens */
+    .logo-card {
+        max-width: 120px;
+        height: 70px;
+    }
+    
+    .logo-card .main-logo {
+        max-width: 90px;
+        max-height: 50px;
+    }
+}
+
+/* Special handling for very small screens */
+@media (max-width: 360px) {
+    .btn {
+        padding: 0.5rem 0.7rem;
+        font-size: 0.85rem;
+    }
+    
+    .controls-primary {
+        gap: 0.4rem;
+    }
+    
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .student-image,
+    .stylish-image,
+    .imageplaceholder {
+        width: 100px;
+        height: 125px;
+    }
+    
+    .student-logo-placeholder,
+    .student-photo {
+        width: 100px !important;
+        height: 125px !important;
+    }
+    
+    .exam-modal-content {
+        padding: 1rem;
+    }
+    
+    .exam-modal-content h2 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Make card backgrounds more opaque to ensure readability */
+.results-section,
+.student-info-card.stylish-info-card,
+.video-section,
+.tool-section {
+    background: rgba(255, 255, 255, 0.9);
+    /* ...existing code... */
+}
+
+/* ...existing code... */
+
+/* Keyboard accessible focus styles */
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Fix for modal scroll on mobile */
+.exam-modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+/* Make sure modal is scrollable on small screens */
+@media (max-height: 700px) {
+    .exam-modal-content {
+        max-height: 80vh;
+    }
+}
+
+/* Fix for video container height on mobile */
+@media (max-width: 480px) {
+    .video-section .video-container {
+        height: auto;
+    }
 }

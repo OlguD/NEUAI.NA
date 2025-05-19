@@ -7,11 +7,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/intro.css') }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.png') }}">
     <style>
         /* Main layout styles */
         .intro-body {
-            background-image: url("{{ url_for('static', filename='assets/İnovasyon_-1.jpg') }}");
+            background-image: url("{{ url_for('static', filename='assets/inovasyon.jpg') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -269,7 +269,7 @@
 <body class="intro-body">
     <div class="intro-container">
         <div class="intro-content">
-            <img src="{{ url_for('static', filename='assets/new_logo.png') }}" alt="NEUAI.NA logo" class="intro-logo">
+            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="NEUAI.NA logo" class="intro-logo">
             
             <div class="language-selector">
                 <button class="language-btn active" data-lang="en">English</button>
@@ -292,12 +292,28 @@
                     <i class="fas fa-lock" id="lockIcon"></i>
                     <span data-en="Login" data-tr="Giriş Yap">Login</span>
                 </button>
-                <button type="button" class="admin-button transition" onclick="checkAdminAccess()">
+                <button type="button" class="admin-button transition" id="adminPanelBtn">
                     <i class="fas fa-user-shield"></i>
                     <span data-en="Admin Panel" data-tr="Yönetici Paneli">Admin Panel</span>
                 </button>
                 <div id="errorMessage" class="error-message" data-en="Incorrect password. Please try again." data-tr="Yanlış şifre. Lütfen tekrar deneyiniz.">Incorrect password. Please try again.</div>
             </form>
+        </div>
+    </div>
+    <!-- Admin Password Modal -->
+    <div id="adminModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+        <div style="background:#222; color:#fff; border-radius:10px; padding:2rem 1.5rem; max-width:320px; width:90vw; margin:auto; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:1rem;">
+            <button id="closeAdminModal" style="position:absolute; top:10px; right:14px; background:none; border:none; color:#fff; font-size:1.3rem; cursor:pointer;">&times;</button>
+            <h2 style="margin:0; font-size:1.2rem;" data-en="Admin Login" data-tr="Yönetici Girişi">Admin Login</h2>
+            <input type="password" id="adminPasswordInput" maxlength="4" placeholder="Enter Admin Password" 
+                   data-placeholder-en="Enter Admin Password" 
+                   data-placeholder-tr="Yönetici Şifresini Girin" 
+                   pattern="[0-9]*" inputmode="numeric"
+                   style="width:100%; padding:0.7rem 1rem; border-radius:7px; border:1px solid #444; background:rgba(255,255,255,0.08); color:#fff; font-size:1rem;">
+            <div id="adminModalError" style="color:#ff6b6b; font-size:0.95rem; min-height:1.2em; display:none;" data-en="Incorrect password." data-tr="Yanlış şifre.">Incorrect password.</div>
+            <button id="adminModalSubmit" style="width:100%; background:var(--primary-color,#2563eb); color:#fff; border:none; border-radius:7px; padding:0.7rem 0; font-size:1rem; font-weight:500; cursor:pointer;">
+                <span data-en="Login" data-tr="Giriş Yap">Login</span>
+            </button>
         </div>
     </div>
     <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
@@ -341,6 +357,12 @@
                 // Update input placeholder
                 passwordInput.placeholder = passwordInput.getAttribute(`data-placeholder-${lang}`);
                 
+                // Update admin password input placeholder
+                const adminPasswordInput = document.getElementById('adminPasswordInput');
+                if (adminPasswordInput) {
+                    adminPasswordInput.placeholder = adminPasswordInput.getAttribute(`data-placeholder-${lang}`);
+                }
+                
                 // Update page title
                 if (pageTitle) {
                     document.title = pageTitle.getAttribute(`data-${lang}`);
@@ -379,17 +401,77 @@
                     }
                 });
             }
-        });
 
-        // Admin access validation
-        function checkAdminAccess() {
-            const adminPassword = prompt('Please enter admin password:');
-            if (adminPassword === '1408') {  // Use same password or different one as needed
-                window.location.href = '/admin';
-            } else {
-                alert('Incorrect admin password');
+            // Admin Panel Modal logic
+            // Modal elements
+            const adminPanelBtn = document.getElementById('adminPanelBtn');
+            const adminModal = document.getElementById('adminModal');
+            const adminPasswordInput = document.getElementById('adminPasswordInput');
+            const adminModalSubmit = document.getElementById('adminModalSubmit');
+            const adminModalError = document.getElementById('adminModalError');
+            const closeAdminModal = document.getElementById('closeAdminModal');
+
+            if (adminPanelBtn && adminModal && adminPasswordInput && adminModalSubmit && adminModalError && closeAdminModal) {
+                adminPanelBtn.addEventListener('click', function() {
+                    adminModal.style.display = 'flex';
+                    adminPasswordInput.value = '';
+                    adminModalError.style.display = 'none';
+                    setTimeout(() => adminPasswordInput.focus(), 100);
+                });
+                closeAdminModal.addEventListener('click', function() {
+                    adminModal.style.display = 'none';
+                });
+                
+                // Ensure only numbers can be entered in the admin password field
+                adminPasswordInput.addEventListener('keydown', function(e) {
+                    // Allow: backspace, delete, tab, escape, enter
+                    if ([8, 46, 9, 27, 13].indexOf(e.keyCode) !== -1 ||
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) ||
+                        (e.keyCode === 67 && e.ctrlKey === true) ||
+                        (e.keyCode === 86 && e.ctrlKey === true) ||
+                        (e.keyCode === 88 && e.ctrlKey === true) ||
+                        // Allow: home, end, left, right
+                        (e.keyCode >= 35 && e.keyCode <= 39)) {
+                        // Let it happen
+                        return;
+                    }
+                    
+                    // Block input if not a number (0-9) and not on numpad (96-105)
+                    if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
+                        e.preventDefault();
+                    }
+                });
+                
+                // Handle paste events to filter non-numeric characters
+                adminPasswordInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                    if (/^\d+$/.test(pastedText)) {
+                        // Only insert if all characters are digits
+                        const maxDigits = Math.min(pastedText.length, 4);
+                        this.value = pastedText.substring(0, maxDigits);
+                    }
+                });
+                
+                adminModalSubmit.addEventListener('click', function() {
+                    if (adminPasswordInput.value === '1408') {
+                        adminModalError.style.display = 'none';
+                        window.location.href = '/admin';
+                    } else {
+                        adminModalError.style.display = 'block';
+                        adminPasswordInput.value = '';
+                        adminPasswordInput.focus();
+                    }
+                });
+                
+                adminPasswordInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        adminModalSubmit.click();
+                    }
+                });
             }
-        }
+        });
     </script>
 </body>
 </html>

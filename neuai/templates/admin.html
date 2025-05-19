@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle" data-en="NEUAI.NA - Admin Panel" data-tr="NEUAI.NA - Yönetici Paneli">NEUAI.NA - Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/style.css') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header admin-header">
+            <div class="header-content">
+                <h1 data-en="Admin Panel" data-tr="Yönetici Paneli">Admin Panel</h1>
+                <p data-en="Manage Student Data" data-tr="Öğrenci Verilerini Yönetin">Manage Student Data</p>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <div class="admin-card">
+                <!-- EXCEL UPLOAD SECTION -->
+                <section class="upload-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-file-excel"></i>
+                        <span data-en="Upload Student Data (Excel)" data-tr="Öğrenci Verilerini Yükle (Excel)">Upload Student Data (Excel)</span>
+                    </h2>
+                    
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-en="Excel file must contain: Student ID, Name, Surname" 
+                              data-tr="Excel dosyası şu sütunları içermelidir: Öğrenci Numarası, Ad, Soyad">
+                            Excel file must contain: Student ID, Name, Surname
+                        </span>
+                    </div>
+                    
+                    <div class="file-upload">
+                        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="file-input">
+                        <label for="excelFile" class="file-label">
+                            <i class="fas fa-file-excel"></i>
+                            <span data-en="Choose Excel File" data-tr="Excel Dosyası Seç">Choose Excel File</span>
+                            <span class="file-name" id="selectedExcelFile" data-en="No file chosen" data-tr="Dosya seçilmedi">No file chosen</span>
+                        </label>
+                    </div>
+                    
+                    <div class="preview-container">
+                        <table id="excelPreviewTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-en="Student ID" data-tr="Öğrenci No">Student ID</th>
+                                    <th data-en="Name" data-tr="Ad">Name</th>
+                                    <th data-en="Surname" data-tr="Soyad">Surname</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="empty-row">
+                                    <td colspan="3" data-en="Excel preview will appear here" data-tr="Excel önizlemesi burada görünecek">Excel preview will appear here</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- PHOTO UPLOAD SECTION -->
+                <section class="upload-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-images"></i>
+                        <span data-en="Upload Student Photos" data-tr="Öğrenci Fotoğraflarını Yükle">Upload Student Photos</span>
+                    </h2>
+                    
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-en="Photos should be named with student ID (e.g. 20212105.jpg)" 
+                              data-tr="Fotoğraflar öğrenci numarası ile adlandırılmalıdır (örn. 20212105.jpg)">
+                            Photos should be named with student ID (e.g. 20212105.jpg)
+                        </span>
+                    </div>
+                    
+                    <div class="file-upload">
+                        <input type="file" id="photoFiles" accept="image/*" multiple class="file-input">
+                        <label for="photoFiles" class="file-label">
+                            <i class="fas fa-images"></i>
+                            <span data-en="Choose Photos" data-tr="Fotoğrafları Seç">Choose Photos</span>
+                            <span class="file-name" id="selectedPhotoCount" data-en="No files chosen" data-tr="Dosya seçilmedi">No files chosen</span>
+                        </label>
+                    </div>
+                    
+                    <div class="preview-container">
+                        <div id="photosGrid" class="photos-grid">
+                            <div class="empty-photos" data-en="Photo previews will appear here" data-tr="Fotoğraf önizlemeleri burada görünecek">
+                                Photo previews will appear here
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="action-bar">
+                    <button id="uploadAllBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span data-en="Upload Student Data" data-tr="Öğrenci Verilerini Yükle">Upload Student Data</span>
+                    </button>
+                </div>
+                
+                <!-- PROCESSING STATUS -->
+                <div id="processingStatus" class="status-box processing" style="display: none;">
+                    <div class="status-icon">
+                        <div class="loader"></div>
+                    </div>
+                    <div class="status-content">
+                        <h3 data-en="Processing..." data-tr="İşleniyor...">Processing...</h3>
+                        <div class="progress-bar">
+                            <div id="progressBar" class="progress" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="progressText">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULT MESSAGE -->
+                <div id="resultMessage" class="status-box success" style="display: none;">
+                    <div class="status-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="status-content">
+                        <h3 id="resultText" data-en="Student data uploaded successfully!" data-tr="Öğrenci verileri başarıyla yüklendi!">Student data uploaded successfully!</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exit-container">
+                <a href="{{ url_for('intro') }}" class="btn btn-exit">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span data-en="Exit Admin Panel" data-tr="Yönetici Panelinden Çık">Exit Admin Panel</span>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form elements
+            const excelFileInput = document.getElementById('excelFile');
+            const photoFilesInput = document.getElementById('photoFiles');
+            const uploadAllBtn = document.getElementById('uploadAllBtn');
+            const processingStatus = document.getElementById('processingStatus');
+            const resultMessage = document.getElementById('resultMessage');
+            const resultText = document.getElementById('resultText');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const excelPreviewTable = document.getElementById('excelPreviewTable');
+            const photosGrid = document.getElementById('photosGrid');
+            const selectedExcelFile = document.getElementById('selectedExcelFile');
+            const selectedPhotoCount = document.getElementById('selectedPhotoCount');
+            
+            // Excel file preview
+            excelFileInput?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Get current language for file selection text
+                const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+                selectedExcelFile.textContent = file.name;
+                
+                if (typeof XLSX === 'undefined') {
+                    console.error('XLSX library not loaded');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const firstSheet = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheet];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                        
+                        if (jsonData.length === 0) {
+                            excelPreviewTable.innerHTML = `
+                                <tr class="empty-row">
+                                    <td colspan="3">No students found in Excel file</td>
+                                </tr>
+                            `;
+                            return;
+                        }
+                        
+                        // Get current language for table headers
+                        const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+                        
+                        // Simplify to handle common field names
+                        let tableHTML = `<thead><tr>
+                            <th>${currentLang === 'tr' ? 'Öğrenci No' : 'Student ID'}</th>
+                            <th>${currentLang === 'tr' ? 'Ad' : 'Name'}</th>
+                            <th>${currentLang === 'tr' ? 'Soyad' : 'Surname'}</th>
+                        </tr></thead><tbody>`;
+                        
+                        // Show first 10 rows
+                        jsonData.slice(0, 10).forEach(row => {
+                            const studentId = row['Öğrenci No'] || row['Student ID'] || row['Student ID'] || row['ID'] || '';
+                            const name = row['Ad'] || row['Name'] || row['First Name'] || '';
+                            const surname = row['Soyad'] || row['Surname'] || row['Last Name'] || '';
+                            
+                            tableHTML += `<tr>
+                                <td>${studentId}</td>
+                                <td>${name}</td>
+                                <td>${surname}</td>
+                            </tr>`;
+                        });
+                        
+                        // Only show "more students" message if there are more than 10 students
+                        if (jsonData.length > 10) {
+                            const remainingCount = jsonData.length - 10;
+                            tableHTML += `<tr>
+                                <td colspan="3" class="more-data">${currentLang === 'tr' 
+                                    ? `... ve ${remainingCount} öğrenci daha` 
+                                    : `... and ${remainingCount} more students`}</td>
+                            </tr>`;
+                        }
+                        
+                        tableHTML += '</tbody>';
+                        excelPreviewTable.innerHTML = tableHTML;
+                        
+                        // Store data for later use
+                        excelPreviewTable.dataset.students = JSON.stringify(jsonData);
+                        
+                        checkFormValidity();
+                    } catch (error) {
+                        console.error('Error parsing Excel file:', error);
+                        excelPreviewTable.innerHTML = `
+                            <tr class="empty-row">
+                                <td colspan="3">Error parsing file: ${error.message}</td>
+                            </tr>
+                        `;
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+            
+            // Photo files preview
+            photoFilesInput?.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
+                
+                // Get current language
+                const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+                
+                // Set the file count text with proper translation
+                if (files.length === 1) {
+                    selectedPhotoCount.textContent = currentLang === 'tr' ? '1 dosya seçildi' : '1 file chosen';
+                } else {
+                    selectedPhotoCount.textContent = currentLang === 'tr' 
+                        ? `${files.length} dosya seçildi` 
+                        : `${files.length} files chosen`;
+                }
+                
+                photosGrid.innerHTML = '';
+                
+                // Preview first 12 photos
+                const maxPreview = Math.min(files.length, 12);
+                for (let i = 0; i < maxPreview; i++) {
+                    const file = files[i];
+                    if (!file.type.match('image.*')) continue;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const photoItem = document.createElement('div');
+                        photoItem.className = 'photo-item';
+                        
+                        // Extract the file name without extension
+                        const fileName = file.name.split('.')[0];
+                        
+                        photoItem.innerHTML = `
+                            <img src="${e.target.result}" alt="Student photo">
+                            <div class="photo-name">${fileName}</div>
+                        `;
+                        photosGrid.appendChild(photoItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                // If there are more photos than preview limit
+                if (files.length > maxPreview) {
+                    const morePhotos = document.createElement('div');
+                    morePhotos.className = 'photo-item more-photos';
+                    morePhotos.innerHTML = `+${files.length - maxPreview} more`;
+                    photosGrid.appendChild(morePhotos);
+                }
+                
+                checkFormValidity();
+            });
+            
+            // Form validation
+            function checkFormValidity() {
+                const hasExcel = excelFileInput?.files.length > 0;
+                const hasPhotos = photoFilesInput?.files.length > 0;
+                
+                if (uploadAllBtn) {
+                    uploadAllBtn.disabled = !(hasExcel && hasPhotos);
+                }
+                
+                return hasExcel && hasPhotos;
+            }
+            
+            // Form submission
+            uploadAllBtn?.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                if (!checkFormValidity()) {
+                    return;
+                }
+                
+                // Hide any previous result messages
+                resultMessage.style.display = 'none';
+                
+                // Show processing status
+                processingStatus.style.display = 'block';
+                updateProgress(5, "Processing Excel data...");
+                
+                try {
+                    // 1. Get the parsed Excel data
+                    const studentsData = JSON.parse(excelPreviewTable.dataset.students || '[]');
+                    
+                    if (studentsData.length === 0) {
+                        updateProgress(0, "No students found in Excel file");
+                        return;
+                    }
+                    
+                    // 2. Process student data
+                    updateProgress(20, "Processing student data");
+                    
+                    const processedStudents = studentsData.map(row => {
+                        // Simplify to handle common field names
+                        const studentId = row['Öğrenci No'] || row['StudentID'] || row['Student ID'] || row['ID'] || '';
+                        const name = row['Ad'] || row['Name'] || row['First Name'] || '';
+                        const surname = row['Soyad'] || row['Surname'] || row['Last Name'] || '';
+                        
+                        return {
+                            id: studentId.toString(),
+                            name: name,
+                            surname: surname
+                        };
+                    });
+                    
+                    // 3. Upload student photos
+                    updateProgress(40, "Uploading photos");
+                    
+                    const formData = new FormData();
+                    for (const file of photoFilesInput.files) {
+                        formData.append('photos', file);
+                    }
+                    // Specify that photos should be saved to neuai/core directory
+                    formData.append('target_directory', 'neuai/core');
+                    
+                    const photoResponse = await fetch('/upload_student_photos', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const photoResult = await photoResponse.json();
+                    
+                    if (!photoResponse.ok) {
+                        throw new Error(photoResult.error || "Failed to upload photos");
+                    }
+                    
+                    // 4. Upload student data
+                    updateProgress(70, "Saving student data");
+                    
+                    const studentResponse = await fetch('/save_student_data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            students: processedStudents
+                        })
+                    });
+                    
+                    const studentResult = await studentResponse.json();
+                    
+                    if (!studentResponse.ok) {
+                        throw new Error(studentResult.error || "Failed to save student data");
+                    }
+                    
+                    // 5. Show success
+                    updateProgress(100, "Upload completed successfully");
+                    
+                    setTimeout(() => {
+                        processingStatus.style.display = 'none';
+                        resultMessage.style.display = 'block';
+                        
+                        // Get current language for success message
+                        const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+                        resultText.textContent = currentLang === 'tr' 
+                            ? "Öğrenci verileri başarıyla yüklendi!" 
+                            : "Student data uploaded successfully!";
+                        
+                        // Reset form
+                        resetForm();
+                        
+                        // Hide success message after 5 seconds
+                        setTimeout(() => {
+                            resultMessage.style.display = 'none';
+                        }, 5000);
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Error uploading data:', error);
+                    processingStatus.style.display = 'none';
+                    
+                    resultMessage.style.display = 'block';
+                    resultMessage.className = 'status-box error';
+                    resultText.textContent = `Error: ${error.message}`;
+                }
+            });
+            
+            // Helper function to update progress
+            function updateProgress(percent, message) {
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (progressText) progressText.textContent = `${percent}%`;
+                
+                const processingMessage = document.querySelector('#processingStatus h3');
+                if (processingMessage && message) {
+                    // Get current language
+                    const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+                    
+                    // Translate common messages
+                    if (message === "Processing...") {
+                        processingMessage.textContent = currentLang === 'tr' ? "İşleniyor..." : "Processing...";
+                    } else if (message === "Processing Excel data...") {
+                        processingMessage.textContent = currentLang === 'tr' ? "Excel verileri işleniyor..." : "Processing Excel data...";
+                    } else if (message === "Processing student data") {
+                        processingMessage.textContent = currentLang === 'tr' ? "Öğrenci verileri işleniyor" : "Processing student data";
+                    } else if (message === "Uploading photos") {
+                        processingMessage.textContent = currentLang === 'tr' ? "Fotoğraflar yükleniyor" : "Uploading photos";
+                    } else if (message === "Saving student data") {
+                        processingMessage.textContent = currentLang === 'tr' ? "Öğrenci verileri kaydediliyor" : "Saving student data";
+                    } else if (message === "Upload completed successfully") {
+                        processingMessage.textContent = currentLang === 'tr' ? "Yükleme başarıyla tamamlandı" : "Upload completed successfully";
+                    } else {
+                        processingMessage.textContent = message;
+                    }
+                }
+            }
+            
+            // Reset form after successful submission
+            function resetForm() {
+                if (excelFileInput) excelFileInput.value = '';
+                if (photoFilesInput) photoFilesInput.value = '';
+                
+                // Get current language
+                const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+                const noFileText = currentLang === 'tr' ? 'Dosya seçilmedi' : 'No file chosen';
+                
+                if (excelPreviewTable) {
+                    const tableHeaders = `
+                        <thead>
+                            <tr>
+                                <th data-en="Student ID" data-tr="Öğrenci No">${currentLang === 'tr' ? 'Öğrenci No' : 'Student ID'}</th>
+                                <th data-en="Name" data-tr="Ad">${currentLang === 'tr' ? 'Ad' : 'Name'}</th>
+                                <th data-en="Surname" data-tr="Soyad">${currentLang === 'tr' ? 'Soyad' : 'Surname'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="empty-row">
+                                <td colspan="3" data-en="Excel preview will appear here" data-tr="Excel önizlemesi burada görünecek">
+                                    ${currentLang === 'tr' ? 'Excel önizlemesi burada görünecek' : 'Excel preview will appear here'}
+                                </td>
+                            </tr>
+                        </tbody>
+                    `;
+                    
+                    excelPreviewTable.innerHTML = tableHeaders;
+                    delete excelPreviewTable.dataset.students;
+                }
+                
+                if (photosGrid) {
+                    photosGrid.innerHTML = `
+                        <div class="empty-photos" data-en="Photo previews will appear here" data-tr="Fotoğraf önizlemeleri burada görünecek">
+                            ${currentLang === 'tr' ? 'Fotoğraf önizlemeleri burada görünecek' : 'Photo previews will appear here'}
+                        </div>
+                    `;
+                }
+                
+                if (selectedExcelFile) selectedExcelFile.textContent = noFileText;
+                if (selectedPhotoCount) selectedPhotoCount.textContent = noFileText;
+                
+                if (uploadAllBtn) uploadAllBtn.disabled = true;
+            }
+            
+            // Initialize
+            checkFormValidity();
+        });
+    </script>
+    
+    <style>
+        /* Admin Panel Specific Styles */
+        .admin-header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        
+        .admin-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+        
+        .admin-header p {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        
+        .admin-main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .admin-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .upload-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            color: #0369a1;
+        }
+        
+        .info-box i {
+            color: #0284c7;
+            margin-top: 0.2rem;
+        }
+        
+        .file-upload {
+            margin-bottom: 1.5rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: white;
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-color);
+        }
+        
+        .file-label:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .file-label i {
+            margin-right: 0.8rem;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+        
+        .file-name {
+            margin-left: auto;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .preview-container {
+            background-color: #f8fafc;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-table th {
+            background-color: #f1f5f9;
+            padding: 0.8rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+        
+        .data-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+        
+        .data-table .empty-row td {
+            text-align: center;
+            color: #94a3b8;
+            padding: 2rem 1rem;
+        }
+        
+        .data-table .more-data {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            background-color: #f8fafc;
+            padding: 0.6rem;
+        }
+        
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+        
+        .photo-item {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            aspect-ratio: 1;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 80%;
+            object-fit: cover;
+        }
+        
+        .photo-name {
+            padding: 0.4rem;
+            font-size: 0.8rem;
+            text-align: center;
+            background-color: #f8fafc;
+            color: var(--text-color);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            height: 20%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .more-photos {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .empty-photos {
+            grid-column: 1 / -1;
+            padding: 3rem;
+            text-align: center;
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-exit {
+            background-color: #f43f5e;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin: 0 auto;
+        }
+        
+        .btn-exit:hover {
+            background-color: #e11d48;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
+        }
+        
+        .exit-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        
+        .status-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-top: 2rem;
+        }
+        
+        .status-box.processing {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .status-box.success {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .status-box.error {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        
+        .status-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+        }
+        
+        .status-box.success .status-icon {
+            color: #16a34a;
+        }
+        
+        .status-box.error .status-icon {
+            color: #dc2626;
+        }
+        
+        .status-content {
+            flex: 1;
+        }
+        
+        .status-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 0.9rem;
+            color: #64748b;
+            text-align: right;
+        }
+        
+        .loader {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e2e8f0;
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .admin-card {
+                padding: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 1.2rem;
+            }
+            
+            .preview-container {
+                padding: 1rem;
+            }
+            
+            .photos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .btn-primary {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .admin-card {
+                padding: 1rem;
+            }
+            
+            .info-box {
+                padding: 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            .file-label {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .file-label i {
+                margin-right: 0.5rem;
+            }
+            
+            .preview-container {
+                padding: 0.8rem;
+            }
+            
+            .photos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+                gap: 0.7rem;
+            }
+            
+            .status-box {
+                padding: 1rem;
+            }
+            
+            .status-icon {
+                font-size: 1.5rem;
+                width: 40px;
+            }
+            
+            .status-content h3 {
+                font-size: 1rem;
+                margin-bottom: 0.8rem;
+            }
+        }
+    </style>
+    
+    <!-- Add language switching script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the preferred language from localStorage
+            const preferredLanguage = localStorage.getItem('preferredLanguage') || 'en';
+            
+            // Apply the language to the page
+            applyLanguage(preferredLanguage);
+            
+            // Function to update text based on language
+            function applyLanguage(lang) {
+                // Update page title
+                const pageTitle = document.getElementById('pageTitle');
+                if (pageTitle && pageTitle.getAttribute(`data-${lang}`)) {
+                    document.title = pageTitle.getAttribute(`data-${lang}`);
+                }
+                
+                // Update all elements with data-en and data-tr attributes
+                document.querySelectorAll('[data-en][data-tr]').forEach(element => {
+                    element.textContent = element.getAttribute(`data-${lang}`);
+                });
+                
+                // Update placeholders for inputs
+                document.querySelectorAll('input[data-en-placeholder][data-tr-placeholder]').forEach(input => {
+                    input.placeholder = input.getAttribute(`data-${lang}-placeholder`);
+                });
+                
+                // Update "No file chosen" text
+                const selectedExcelFile = document.getElementById('selectedExcelFile');
+                const selectedPhotoCount = document.getElementById('selectedPhotoCount');
+                
+                if (selectedExcelFile) {
+                    if (selectedExcelFile.textContent === 'No file chosen' || selectedExcelFile.textContent === 'Dosya seçilmedi') {
+                        selectedExcelFile.textContent = lang === 'tr' ? 'Dosya seçilmedi' : 'No file chosen';
+                    }
+                }
+                
+                if (selectedPhotoCount) {
+                    if (selectedPhotoCount.textContent === 'No files chosen' || selectedPhotoCount.textContent === 'Dosya seçilmedi') {
+                        selectedPhotoCount.textContent = lang === 'tr' ? 'Dosya seçilmedi' : 'No files chosen';
+                    }
+                }
+                
+                // Update empty states if they exist
+                const emptyExcelRow = document.querySelector('.data-table .empty-row td');
+                if (emptyExcelRow) {
+                    emptyExcelRow.textContent = lang === 'tr' ? 'Excel önizlemesi burada görünecek' : 'Excel preview will appear here';
+                }
+                
+                const emptyPhotos = document.querySelector('.empty-photos');
+                if (emptyPhotos) {
+                    emptyPhotos.textContent = lang === 'tr' ? 'Fotoğraf önizlemeleri burada görünecek' : 'Photo previews will appear here';
+                }
+                
+                // Update table headers
+                const tableHeaders = document.querySelectorAll('.data-table th');
+                if (tableHeaders && tableHeaders.length >= 3) {
+                    tableHeaders[0].textContent = lang === 'tr' ? 'Öğrenci No' : 'Student ID';
+                    tableHeaders[1].textContent = lang === 'tr' ? 'Ad' : 'Name';
+                    tableHeaders[2].textContent = lang === 'tr' ? 'Soyad' : 'Surname';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

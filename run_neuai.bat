@@ -20,6 +20,18 @@ echo.
 REM Change to the project directory
 cd /d "%~dp0"
 
+REM Check for debug mode flag
+set "DEBUG_MODE="
+if /i "%1"=="debug" set "DEBUG_MODE=--debug"
+if /i "%1"=="-d" set "DEBUG_MODE=--debug"
+if /i "%1"=="--debug" set "DEBUG_MODE=--debug"
+
+if defined DEBUG_MODE (
+    echo [+] Running in DEBUG MODE
+    echo [+] Verbose logging will be enabled
+    echo.
+)
+
 echo [+] Initializing environment...
 
 REM Check for virtual environment in common locations
@@ -67,8 +79,9 @@ if "!VENV_FOUND!"=="0" (
 REM Ensure Flask is installed
 echo [+] Verifying dependencies...
 pip install flask -q 2>nul
+pip install psutil -q 2>nul
 if !errorlevel! neq 0 (
-    echo [!] Error installing Flask. Please check your internet connection.
+    echo [!] Error installing dependencies. Please check your internet connection.
     pause
     exit /b 1
 )
@@ -94,11 +107,13 @@ echo.
 echo [+] Launching NEUAI application...
 echo [+] Application will open in your web browser automatically...
 echo [+] To shut down the server AND close this window, press the 'Q' key.
+if defined DEBUG_MODE echo [+] To view debug info if app freezes, press the 'D' key.
 echo.
 
 REM Run the launcher using the virtual environment Python explicitly
-"%~dp0%PYTHON_CMD%" "neuai_launcher.py"
+"%~dp0%PYTHON_CMD%" "neuai_launcher.py" %DEBUG_MODE%
 
 REM If we get here, the Python script has exited
 echo.
+pause
 exit /b

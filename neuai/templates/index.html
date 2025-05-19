@@ -7,25 +7,118 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/style.css') }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/NEUAI.NA-favicon.png') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.png') }}">
 </head>
 <body>
-    <!-- Language selector -->
-    <div class="language-selector">
-        <button class="language-btn active" data-lang="en">English</button>
-        <button class="language-btn" data-lang="tr">Türkçe</button>
-    </div>
-
+    <!-- Language selector kaldırıldı -->
     <div class="container">
         <header class="header">
-            <img src="{{ url_for('static', filename='assets/NEUAI.NA-logo.png') }}" alt="NEUAI.NA logo" class="logo">
+            <!-- Logo kaldırıldı -->
         </header>
 
         <main class="main-content">
+            <section class="results-section">
+                <div class="tools-container">
+                    <!-- Student Search Section -->
+                    <div class="tool-section full-width">
+                        <h3><i class="fas fa-search"></i> <span data-en="Student Search" data-tr="Öğrenci Arama">Student Search</span></h3>
+                        <div class="search-form">
+                            <div class="search-input-wrapper">
+                                <label for="schoolNumber" class="search-label">
+                                    <i class="fas fa-id-card"></i>
+                                    <span data-en="Enter School Number" data-tr="Okul Numarası Girin">Enter School Number</span>
+                                </label>
+                                <input type="text" 
+                                       name="schoolNumber" 
+                                       id="schoolNumber" 
+                                       placeholder="20XXXXXX" 
+                                       maxlength="8" 
+                                       pattern="[0-9]{8}">
+                            </div>
+                            <button type="button" class="btn btn-search" onclick="handleSearch()">
+                                <i class="fas fa-search"></i>
+                                <span data-en="Search Student" data-tr="Öğrenci Ara">Search Student</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Export to Excel Button and Exam Selection -->
+                    <div class="tool-section full-width">
+                        <div class="search-form">
+                            <div class="search-input-wrapper">
+                                <!-- Sınavları Seç butonu -->
+                                <button type="button" id="openExamModalBtn" class="btn btn-exam-modal">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <span data-en="Select Exams" data-tr="Sınavları Seç">Select Exams</span>
+                                    <span id="selectedCount" class="exam-counter" data-en-prefix="selected" data-tr-prefix="seçildi">0 selected</span>
+                                </button>
+                            </div>
+                            <h3 style="margin-bottom: 0.5rem;"><i class="fas fa-file-export"></i> <span data-en="Export Data" data-tr="Veri Dışa Aktar">Export Data</span></h3>
+                            <button type="button" id="exportExcelBtn" class="btn btn-export">
+                                <i class="fas fa-file-excel"></i>
+                                <span data-en="Export to Excel" data-tr="Excel'e Aktar">Export to Excel</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="similarityResults">
+                </div>
+            </section>
+
+            <!-- Orta kolon: Analiz Sonuçları başlığı ve öğrenci bilgileri -->
+            <section class="student-info-section">
+                <div class="student-info-card stylish-info-card">
+                    <!-- Logo in a separate container with flip effect -->
+                    <div class="logo-card">
+                        <div class="logo-card-inner">
+                            <div class="logo-front">
+                                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="NEUAI.NA Logo" class="main-logo">
+                            </div>
+                            <div class="logo-back">
+                                <img src="{{ url_for('static', filename='assets/neu.png') }}" alt="NEU Logo" class="main-logo">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="stylish-title">
+                        <i class="fas fa-chart-bar"></i>
+                        <span data-en="Analysis Results" data-tr="Analiz Sonuçları">Analysis Results</span>
+                    </h2>
+                    <h3 class="stylish-subtitle" data-en="Student Information" data-tr="Öğrenci Bilgileri">Student Information</h3>
+                    <div class="student-field stylish-field">
+                        <span class="student-label" data-en="Student Number:" data-tr="Öğrenci Numarası:">Student Number:</span>
+                        <span class="student-value" id="studentNumber"></span>
+                    </div>
+                    <div class="student-image imageplaceholder" id="studentImageContainer">
+                        <!-- Placeholder her zaman burada -->
+                        <div id="studentImageLogoPlaceholder" class="student-logo-placeholder">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                                <circle cx="40" cy="40" r="38" fill="#e0e7ff" stroke="#2563eb" stroke-width="3"/>
+                                <circle cx="40" cy="32" r="14" fill="#2563eb" opacity="0.15"/>
+                                <ellipse cx="40" cy="56" rx="20" ry="10" fill="#2563eb" opacity="0.10"/>
+                                <circle cx="40" cy="32" r="10" fill="#2563eb"/>
+                                <ellipse cx="40" cy="56" rx="14" ry="7" fill="#2563eb"/>
+                            </svg>
+                        </div>
+                        <!-- Öğrenci fotoğrafı JS ile buraya eklenir -->
+                    </div>
+                    <h4 class="stylish-subtitle" data-en="Face Analysis Results" data-tr="Yüz Analiz Sonuçları">Face Analysis Results</h4>
+                    <div class="student-field stylish-field">
+                        <span class="student-label" data-en="Similarity Score:" data-tr="Benzerlik Puanı:">Similarity Score:</span>
+                        <span class="student-value" id="similarityScore"></span>
+                    </div>
+                    <div class="student-result stylish-result">
+                        <span data-en="Result:" data-tr="Sonuç:">Result:</span>
+                        <span class="student-result-value" id="similarityResult"></span>
+                    </div>
+                </div>
+            </section>
+
             <section class="video-section">
                 <div class="video-container">
                     <div id="placeholderImage" class="placeholder-image">
-                        <i class="fas fa-video"></i> <span data-en="Video not started" data-tr="Video başlatılmadı">Video not started</span>
+                        <i class="fas fa-video"></i>
+                        <span data-en="Camera not started" data-tr="Kamera başlatılmadı">Kamera başlatılmadı</span>
                     </div>
                     <img id="videoFeed" src="" alt="Video Stream" style="display: none;" 
                     data-video-url="{{ url_for('video_feed') }}">
@@ -37,7 +130,7 @@
                     <div class="controls-primary">
                         <button id="startButton" class="btn btn-start">
                             <i class="fas fa-play"></i>
-                            <span data-en="Start Stream" data-tr="Yayını Başlat">Start Stream</span>
+                            <span data-en="Start Camera" data-tr="Kamerayı Başlat">Kamerayı Başlat</span>
                         </button>
                         <button id="stopButton" class="btn btn-stop" style="display: none;">
                             <i class="fas fa-stop"></i>
@@ -77,204 +170,149 @@
 
                 <div id="detectionMessage" class="detection-message"></div>
             </section>
-
-            <section class="results-section">
-                <h2>
-                    <i class="fas fa-chart-bar"></i>
-                    <span data-en="Analysis Results" data-tr="Analiz Sonuçları">Analysis Results</span>
-                </h2>
-                <p data-en="Document and Face Recognition" data-tr="Belge ve Yüz Tanıma">Document and Face Recognition</p>
-                
-                <div class="tools-container">
-                    <!-- Student Search Section -->
-                    <div class="tool-section full-width">
-                        <h3><i class="fas fa-search"></i> <span data-en="Student Search" data-tr="Öğrenci Arama">Student Search</span></h3>
-                        <div class="search-form">
-                            <div class="search-input-wrapper">
-                                <label for="schoolNumber" class="search-label">
-                                    <i class="fas fa-id-card"></i>
-                                    <span data-en="Enter School Number" data-tr="Okul Numarası Girin">Enter School Number</span>
-                                </label>
-                                <input type="text" 
-                                       name="schoolNumber" 
-                                       id="schoolNumber" 
-                                       placeholder="20XXXXXX" 
-                                       maxlength="8" 
-                                       pattern="[0-9]{8}">
-                            </div>
-                            <button type="button" class="btn btn-search" onclick="handleSearch()">
-                                <i class="fas fa-search"></i>
-                                <span data-en="Search Student" data-tr="Öğrenci Ara">Search Student</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Export to Excel Button and Exam Selection -->
-                    <div class="tool-section full-width">
-                        <h3><i class="fas fa-file-export"></i> <span data-en="Export Data" data-tr="Veri Dışa Aktar">Export Data</span></h3>
-                        <div class="search-form">
-                            <div class="search-input-wrapper">
-                                <div class="collapsible-section">
-                                    <button type="button" id="examDropdownToggle" class="dropdown-toggle">
-                                        <div class="toggle-content">
-                                            <div>
-                                                <i class="fas fa-clipboard-list"></i>
-                                                <span data-en="Select Exams" data-tr="Sınavları Seç">Select Exams</span>
-                                            </div>
-                                            <span id="selectedCount" class="exam-counter" data-en-prefix="selected" data-tr-prefix="seçildi">0 selected</span>
-                                        </div>
-                                        <i class="fas fa-chevron-down toggle-icon"></i>
-                                    </button>
-                                    
-                                    <div class="collapsible-content" id="examSelectionContent">
-                                        <div class="exam-checkbox-container">
-                                            <!-- AIT101 Course -->
-                                            <div class="exam-course-group">
-                                                <div class="course-header">
-                                                    <label class="checkbox-label select-all-label">
-                                                        <input type="checkbox" class="select-all-course" data-course="AIT101">
-                                                        <span>AIT101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
-                                                    </label>
-                                                </div>
-                                                <div class="exam-checkbox-list">
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="AIT101_Midterm" class="exam-checkbox" data-course="AIT101">
-                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="AIT101_Final" class="exam-checkbox" data-course="AIT101">
-                                                        <span data-en="Final" data-tr="Final">Final</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- AIT102 Course -->
-                                            <div class="exam-course-group">
-                                                <div class="course-header">
-                                                    <label class="checkbox-label select-all-label">
-                                                        <input type="checkbox" class="select-all-course" data-course="AIT102">
-                                                        <span>AIT102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
-                                                    </label>
-                                                </div>
-                                                <div class="exam-checkbox-list">
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="AIT102_Midterm" class="exam-checkbox" data-course="AIT102">
-                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="AIT102_Final" class="exam-checkbox" data-course="AIT102">
-                                                        <span data-en="Final" data-tr="Final">Final</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- TUR101 Course -->
-                                            <div class="exam-course-group">
-                                                <div class="course-header">
-                                                    <label class="checkbox-label select-all-label">
-                                                        <input type="checkbox" class="select-all-course" data-course="TUR101">
-                                                        <span>TUR101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
-                                                    </label>
-                                                </div>
-                                                <div class="exam-checkbox-list">
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="TUR101_Midterm" class="exam-checkbox" data-course="TUR101">
-                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="TUR101_Final" class="exam-checkbox" data-course="TUR101">
-                                                        <span data-en="Final" data-tr="Final">Final</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- TUR102 Course -->
-                                            <div class="exam-course-group">
-                                                <div class="course-header">
-                                                    <label class="checkbox-label select-all-label">
-                                                        <input type="checkbox" class="select-all-course" data-course="TUR102">
-                                                        <span>TUR102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
-                                                    </label>
-                                                </div>
-                                                <div class="exam-checkbox-list">
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="TUR102_Midterm" class="exam-checkbox" data-course="TUR102">
-                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="TUR102_Final" class="exam-checkbox" data-course="TUR102">
-                                                        <span data-en="Final" data-tr="Final">Final</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- ENG101 Course -->
-                                            <div class="exam-course-group">
-                                                <div class="course-header">
-                                                    <label class="checkbox-label select-all-label">
-                                                        <input type="checkbox" class="select-all-course" data-course="ENG101">
-                                                        <span>ENG101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
-                                                    </label>
-                                                </div>
-                                                <div class="exam-checkbox-list">
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="ENG101_Midterm" class="exam-checkbox" data-course="ENG101">
-                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="ENG101_Final" class="exam-checkbox" data-course="ENG101">
-                                                        <span data-en="Final" data-tr="Final">Final</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- ENG102 Course -->
-                                            <div class="exam-course-group">
-                                                <div class="course-header">
-                                                    <label class="checkbox-label select-all-label">
-                                                        <input type="checkbox" class="select-all-course" data-course="ENG102">
-                                                        <span>ENG102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
-                                                    </label>
-                                                </div>
-                                                <div class="exam-checkbox-list">
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="ENG102_Midterm" class="exam-checkbox" data-course="ENG102">
-                                                        <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
-                                                    </label>
-                                                    <label class="checkbox-label">
-                                                        <input type="checkbox" name="exam" value="ENG102_Final" class="exam-checkbox" data-course="ENG102">
-                                                        <span data-en="Final" data-tr="Final">Final</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="exam-actions">
-                                            <button type="button" id="selectAllExams" class="btn btn-sm">
-                                                <span data-en="Select All" data-tr="Tümünü Seç">Select All</span>
-                                            </button>
-                                            <button type="button" id="clearAllExams" class="btn btn-sm btn-outline">
-                                                <span data-en="Clear" data-tr="Temizle">Clear</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" id="exportExcelBtn" class="btn btn-export">
-                                <i class="fas fa-file-excel"></i>
-                                <span data-en="Export to Excel" data-tr="Excel'e Aktar">Export to Excel</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="similarityResults">
-                    <div class="result-item">
-                        <p data-en="No analysis done yet" data-tr="Henüz analiz yapılmadı">No analysis done yet</p>
-                    </div>
-                </div>
-            </section>
         </main>
+    </div>
+    <!-- Modal pencere -->
+    <div id="examModal" class="exam-modal">
+        <div class="exam-modal-content">
+            <span class="exam-modal-close" id="closeExamModalBtn">&times;</span>
+            <h2 style="margin-bottom:1rem;">
+                <i class="fas fa-clipboard-list"></i>
+                <span data-en="Select Exams" data-tr="Sınavları Seç">Select Exams</span>
+            </h2>
+            <div class="exam-checkbox-container">
+                <!-- AIT101 Course -->
+                <div class="exam-course-group">
+                    <div class="course-header">
+                        <label class="checkbox-label select-all-label">
+                            <input type="checkbox" class="select-all-course" data-course="AIT101">
+                            <span>AIT101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
+                        </label>
+                    </div>
+                    <div class="exam-checkbox-list">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="AIT101_Midterm" class="exam-checkbox" data-course="AIT101">
+                            <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="AIT101_Final" class="exam-checkbox" data-course="AIT101">
+                            <span data-en="Final" data-tr="Final">Final</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- AIT102 Course -->
+                <div class="exam-course-group">
+                    <div class="course-header">
+                        <label class="checkbox-label select-all-label">
+                            <input type="checkbox" class="select-all-course" data-course="AIT102">
+                            <span>AIT102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
+                        </label>
+                    </div>
+                    <div class="exam-checkbox-list">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="AIT102_Midterm" class="exam-checkbox" data-course="AIT102">
+                            <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="AIT102_Final" class="exam-checkbox" data-course="AIT102">
+                            <span data-en="Final" data-tr="Final">Final</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- TUR101 Course -->
+                <div class="exam-course-group">
+                    <div class="course-header">
+                        <label class="checkbox-label select-all-label">
+                            <input type="checkbox" class="select-all-course" data-course="TUR101">
+                            <span>TUR101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
+                        </label>
+                    </div>
+                    <div class="exam-checkbox-list">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="TUR101_Midterm" class="exam-checkbox" data-course="TUR101">
+                            <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="TUR101_Final" class="exam-checkbox" data-course="TUR101">
+                            <span data-en="Final" data-tr="Final">Final</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- TUR102 Course -->
+                <div class="exam-course-group">
+                    <div class="course-header">
+                        <label class="checkbox-label select-all-label">
+                            <input type="checkbox" class="select-all-course" data-course="TUR102">
+                            <span>TUR102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
+                        </label>
+                    </div>
+                    <div class="exam-checkbox-list">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="TUR102_Midterm" class="exam-checkbox" data-course="TUR102">
+                            <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="TUR102_Final" class="exam-checkbox" data-course="TUR102">
+                            <span data-en="Final" data-tr="Final">Final</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- ENG101 Course -->
+                <div class="exam-course-group">
+                    <div class="course-header">
+                        <label class="checkbox-label select-all-label">
+                            <input type="checkbox" class="select-all-course" data-course="ENG101">
+                            <span>ENG101 (<span data-en="All" data-tr="Tümü">All</span>)</span>
+                        </label>
+                    </div>
+                    <div class="exam-checkbox-list">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="ENG101_Midterm" class="exam-checkbox" data-course="ENG101">
+                            <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="ENG101_Final" class="exam-checkbox" data-course="ENG101">
+                            <span data-en="Final" data-tr="Final">Final</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- ENG102 Course -->
+                <div class="exam-course-group">
+                    <div class="course-header">
+                        <label class="checkbox-label select-all-label">
+                            <input type="checkbox" class="select-all-course" data-course="ENG102">
+                            <span>ENG102 (<span data-en="All" data-tr="Tümü">All</span>)</span>
+                        </label>
+                    </div>
+                    <div class="exam-checkbox-list">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="ENG102_Midterm" class="exam-checkbox" data-course="ENG102">
+                            <span data-en="Midterm" data-tr="Ara Sınav">Midterm</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="exam" value="ENG102_Final" class="exam-checkbox" data-course="ENG102">
+                            <span data-en="Final" data-tr="Final">Final</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="exam-actions">
+                <button type="button" id="selectAllExams" class="btn btn-sm">
+                    <span data-en="Select All" data-tr="Tümünü Seç">Select All</span>
+                </button>
+                <button type="button" id="clearAllExams" class="btn btn-sm btn-outline">
+                    <span data-en="Clear" data-tr="Temizle">Clear</span>
+                </button>
+                <button type="button" id="closeExamModalBtn2" class="btn btn-primary" style="margin-left:auto;">
+                    <span data-en="Done" data-tr="Tamam">Done</span>
+                </button>
+            </div>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='/js/script.js') }}"></script>
     <script src="{{ url_for('static', filename='/js/transitions.js') }}"></script>
@@ -347,6 +385,44 @@
             // Apply saved language
             updateLanguage(savedLanguage);
         });
+
+        // Öğrenci arama sonrası sonucu orta kolona yazmak için örnek fonksiyon
+        function showStudentInfo(data) {
+            document.getElementById('studentNumber').textContent = data.number || '';
+            const imgContainer = document.getElementById('studentImageContainer');
+            // Placeholder zaten HTML'de var, sadece öğrenci fotoğrafını ekle/çıkar
+            // Önce eski öğrenci fotoğrafını kaldır
+            const oldImg = imgContainer.querySelector('img.student-photo');
+            if (oldImg) oldImg.remove();
+            if (data.image) {
+                // Öğrenci fotoğrafını placeholder'ın üstüne ekle
+                const img = document.createElement('img');
+                img.src = data.image;
+                img.alt = "Student Image";
+                img.className = "student-photo";
+                img.style.position = "absolute";
+                img.style.top = "0";
+                img.style.left = "0";
+                img.style.width = "120px";
+                img.style.height = "150px";
+                img.style.objectFit = "cover";
+                img.style.borderRadius = "10px";
+                img.style.border = "2px solid #c7d2fe";
+                img.style.zIndex = "2";
+                // imgContainer'ın position'ı relative olmalı
+                imgContainer.style.position = "relative";
+                imgContainer.appendChild(img);
+            }
+            document.getElementById('similarityScore').textContent = data.similarityScore || '';
+            document.getElementById('similarityResult').textContent = data.similarityResult || '';
+            if (data.similarityResult && data.similarityResultColor) {
+                document.getElementById('similarityResult').style.color = data.similarityResultColor;
+            } else {
+                document.getElementById('similarityResult').style.color = '';
+            }
+        }
+
+        // handleSearch fonksiyonunuzda, sonucu aşağıya değil, showStudentInfo ile orta kolona yazın.
     </script>
 </body>
 </html>

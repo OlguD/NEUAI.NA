@@ -164,6 +164,10 @@ def intro():
 def index():
     return render_template('index.html')
 
+@app.route('/admin')
+def admin_panel():
+    return render_template('admin.html')
+
 @app.route('/video_feed')
 def video_feed():
     stream = generate_frames()
@@ -535,6 +539,93 @@ def export_to_excel():
         print(f"Export error: {e}")
         traceback.print_exc()
         return jsonify({"error": f"Export failed: {str(e)}"}), 500
+
+@app.route('/save_student_data', methods=['POST'])
+def save_student_data():
+    try:
+        data = request.json
+        if not data or 'students' not in data:
+            return jsonify({"error": "Invalid data format: 'students' field is required"}), 400
+
+        students = data['students']
+        
+        # Create studentData directory if it doesn't exist
+        student_data_dir = os.path.join(app.static_folder, 'studentData')
+        os.makedirs(student_data_dir, exist_ok=True)
+        
+        # Create an Excel file from the student data
+        df = pd.DataFrame(students)
+        excel_path = os.path.join(student_data_dir, 'studentData.xlsx')
+        df.to_excel(excel_path, index=False)
+        
+        # Save student data as JSON as well for easier access
+        json_path = os.path.join(student_data_dir, 'studentData.json')
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(students, f, ensure_ascii=False, indent=4)
+            
+        return jsonify({
+            "success": True,
+            "message": "Student data saved successfully",
+            "count": len(students)
+        })
+        
+    except Exception as e:
+        logging.error(f"Error saving student data: {str(e)}")
+        return jsonify({"error": f"Failed to save student data: {str(e)}"}), 500
+
+@app.route('/upload_student_photos', methods=['POST'])
+def upload_student_photos():
+    try:
+        if 'photos' not in request.files:
+            return jsonify({"error": "No photos found in the request"}), 400
+            
+        photos = request.files.getlist('photos')
+        if not photos or len(photos) == 0:
+            return jsonify({"error": "No photos selected"}), 400
+        
+        # Get target directory from form data or use default
+        target_directory = request.form.get('target_directory', 'studentData/photos')
+        
+        # If the target is neuai/core, use that instead of creating under static folder
+        if target_directory.lower() == 'neuai/core':
+            # Use absolute path relative to application root
+            student_photos_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'neuai', 'core')
+        else:
+            # Use the original path under static folder
+            student_photos_dir = os.path.join(app.static_folder, 'studentData', 'photos')
+        
+        # Create the directory if it doesn't exist
+        os.makedirs(student_photos_dir, exist_ok=True)
+        
+        logging.info(f"Saving photos to: {student_photos_dir}")
+        
+        saved_count = 0
+        errors = []
+        
+        for photo in photos:
+            if photo and allowed_file(photo.filename):
+                try:
+                    # Secure the filename and clean it
+                    filename = secure_filename(photo.filename)
+                    save_path = os.path.join(student_photos_dir, filename)
+                    
+                    # Save the file
+                    photo.save(save_path)
+                    saved_count += 1
+                except Exception as e:
+                    errors.append(f"Error saving {photo.filename}: {str(e)}")
+            else:
+                errors.append(f"Invalid file type for {photo.filename}")
+                
+        return jsonify({
+            "success": True,
+            "message": f"Successfully saved {saved_count} photos to {student_photos_dir}",
+            "errors": errors if errors else None
+        })
+        
+    except Exception as e:
+        logging.error(f"Error uploading student photos: {str(e)}")
+        return jsonify({"error": f"Failed to upload photos: {str(e)}"}), 500
 
 @app.errorhandler(404)
 def page_not_found(e):

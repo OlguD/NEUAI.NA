@@ -28,6 +28,9 @@ let currentObjectType = null;
 let detectionInterval = null;
 let isFaceAnalyzed = false; // Track if face has been analyzed
 
+// Yeni: Yüz analizi yapılan öğrenci sayısı
+let faceAnalysisCount = 0;
+
 // Add translation objects near the top of the file
 const translations = {
     en: {
@@ -63,7 +66,11 @@ const translations = {
         generatingExcel: "Generating Excel export...",
         exportFailed: "Export failed",
         similarFeatures: "Similar features present",
-        differentPersons: "Different persons"
+        differentPersons: "Different persons",
+        samePerson: "Same Person", // Added translation for "Same Person"
+        // Added for camera
+        startCamera: "Start Camera",
+        cameraNotStarted: "Camera not started"
     },
     tr: {
         studentNumber: "Öğrenci Numarası",
@@ -98,7 +105,11 @@ const translations = {
         generatingExcel: "Excel dışa aktarımı oluşturuluyor...",
         exportFailed: "Dışa aktarma başarısız oldu",
         similarFeatures: "Benzer özellikler mevcut",
-        differentPersons: "Farklı kişiler"
+        differentPersons: "Farklı kişiler",
+        samePerson: "Aynı Kişi", // Added Turkish translation for "Same Person"
+        // Added for camera
+        startCamera: "Kamerayı Başlat",
+        cameraNotStarted: "Kamera başlatılmadı"
     }
 };
 
@@ -138,7 +149,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Replace any non-digit character with empty string
         this.value = this.value.replace(/\D/g, '');
     });
+
+    // Başlangıçta tüm butonları devre dışı bırak
+    setInitialButtonStates();
 });
+
+// Başlangıçta tüm butonları devre dışı bırak
+function setInitialButtonStates() {
+    // Sadece öğrenci ara tuşu aktif, diğerleri pasif
+    startButton.disabled = true;
+    faceAnalyzeButton.disabled = true;
+    documentAnalyzeButton.disabled = true;
+    resetButton.disabled = true;
+    confirmButton.disabled = true;
+    rejectButton.disabled = true;
+    // Excel'e aktar tuşu sadece yüz analizi yapılınca aktif olacak
+    const exportBtn = document.getElementById('exportExcelBtn');
+    if (exportBtn) exportBtn.disabled = true;
+}
 
 // Add new function to handle search
 async function handleSearch() {
@@ -147,17 +175,60 @@ async function handleSearch() {
 
     // Check if input is exactly 8 digits
     if (!/^\d{8}$/.test(inputValue)) {
+        // Hataları yine similarityResults'a yazabilirsiniz, ama başarıda orta kolonu kullanacağız
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
                 ${getTranslation('exactlyEightDigits')}
             </div>
         `;
+        // Ayrıca orta kolonu da temizle
+        showStudentInfo({});
+        setInitialButtonStates();
         return;
     }
 
     schoolNumber = inputValue;
     await searchStudentByNumber(inputValue);
+
+    // Öğrenci bulunduysa ders seçimi ve kamera başlat aktif
+    // Ancak kamera başlat tuşu sadece ders seçilirse aktif olacak
+    startButton.disabled = true;
+    // ...diğer butonlar...
+    // onCourseSelectionChanged fonksiyonu ders seçimi değiştikçe çağrılır
+}
+
+// Ders seçimi ve kamera başlatma tuşunu aktif et
+function enableCourseAndCamera() {
+    // Ders seçim modalı ve butonları aktif (kullanıcı ders seçebilir)
+    // Kamera başlat tuşu aktif
+    startButton.disabled = false;
+    // Ders seçim işlemi kullanıcıya bırakılır
+    // Yüz analizi ve onay/reddet yine pasif
+    faceAnalyzeButton.disabled = true;
+    documentAnalyzeButton.disabled = true;
+    confirmButton.disabled = true;
+    rejectButton.disabled = true;
+    resetButton.disabled = false;
+    // Excel'e aktar tuşu sadece yüz analizi yapılınca aktif olacak
+    const exportBtn = document.getElementById('exportExcelBtn');
+    if (exportBtn) exportBtn.disabled = (faceAnalysisCount === 0);
+}
+
+// Ders seçilince kamera başlat tuşunu ve yüz analizi tuşunu kontrol et
+function onCourseSelectionChanged() {
+    // En az bir ders seçiliyse kamera başlat tuşu aktif
+    const hasSelectedCourse = document.querySelectorAll('.exam-checkbox:checked').length > 0;
+    startButton.disabled = !hasSelectedCourse;
+    // Kamera çalışıyorsa yüz analizi tuşunu da kontrol et
+    if (isVideoRunning && hasSelectedCourse) {
+        faceAnalyzeButton.disabled = false;
+    } else {
+        faceAnalyzeButton.disabled = true;
+    }
+    // Onay/reddet yine pasif, yüz analizi yapılınca aktif olacak
+    confirmButton.disabled = true;
+    rejectButton.disabled = true;
 }
 
 function showLoadingAnimation() {
@@ -175,42 +246,8 @@ function hideLoadingAnimation() {
 }
 
 function resetAnalysis() {
-    // Reset variables
-    schoolNumber = null;
-    documentAnalysisResults = null;
-    studentImageHtml = null;
-    
-    // Reset similarity results
-    similarityResults.innerHTML = `<div class="result-item"><p>${getTranslation('noAnalysis')}</p></div>`;
-    
-    // Reset school number input
-    if (schoolNumberInput) {
-        schoolNumberInput.value = '';
-    }
-
-    // Reset file input and preview
-    const fileInput = document.getElementById('documentFile');
-    const previewContainer = document.getElementById('imagePreviewContainer');
-    if (fileInput) {
-        fileInput.value = ''; // Clear file input
-    }
-    if (previewContainer) {
-        previewContainer.style.display = 'none'; // Hide preview
-    }
-
-    // Reset analyze buttons
-    faceAnalyzeButton.classList.remove('active');
-    documentAnalyzeButton.classList.remove('active');
-    
-    resetButton.disabled = true;
-    
-    showMessage(getTranslation('resetAnalysis'));
-    
-    setTimeout(() => {
-        if (isVideoRunning) {
-            detectObject();
-        }
-    }, 1500);
+    // Sayfayı yeniden yükle
+    window.location.reload();
 }
 
 function startVideo() {
@@ -235,6 +272,10 @@ function startVideo() {
     
     // Nesne tespitini başlat
     detectObject();
+
+    // Kamera başlatıldıktan sonra ders seçiliyse yüz analizi tuşu aktif
+    const hasSelectedCourse = document.querySelectorAll('.exam-checkbox:checked').length > 0;
+    faceAnalyzeButton.disabled = !hasSelectedCourse;
 }
 
 function stopVideo() {
@@ -309,12 +350,9 @@ function showMessage(text) {
             </div>
         `;
         
-        // Auto-hide reset analysis message after 3 seconds
-        if (text === getTranslation('resetAnalysis')) {
-            setTimeout(() => {
-                detectionMessage.innerHTML = '';
-            }, 3000);
-        }
+        setTimeout(() => {
+            detectionMessage.innerHTML = '';
+        }, 5000);
     }
 }
 
@@ -328,17 +366,31 @@ async function analyzeFace() {
                 ${getTranslation('enterSchoolNumber')}
             </div>
         `;
+        // Orta kolonu da temizle
+        showStudentInfo({});
         return;
     }
 
-    // Loading göster
-    similarityResults.innerHTML = `
-        <div class="loading-container">
-            <div class="loader"></div>
-            <span>${getTranslation('faceAnalysisInProgress')}</span>
-        </div>
-    `;
-    
+    // Öğrenci fotoğrafı ve bilgileri kaybolmasın, sadece similarityScore ve similarityResult güncellensin
+    // Önce mevcut bilgileri al
+    const currentNumber = document.getElementById('studentNumber').textContent;
+    const imgContainer = document.getElementById('studentImageContainer');
+    let currentImage = null;
+    const imgTag = imgContainer.querySelector('img.student-photo');
+    if (imgTag) {
+        currentImage = imgTag.src;
+    }
+
+    // Sadece similarityScore ve similarityResult'u güncelle
+    showStudentInfo({
+        number: currentNumber || schoolNumber,
+        image: currentImage || `/get_student_image/${schoolNumber}`,
+        similarityScore: getTranslation('faceAnalysisInProgress'),
+        similarityResult: ''
+    });
+
+    // similarityResults'a hiçbir şey yazma
+
     try {
         const response = await fetch('/analyze_face', {
             headers: {
@@ -351,78 +403,41 @@ async function analyzeFace() {
         faceAnalysisResults = data;
         // Mark face as analyzed
         isFaceAnalyzed = true;
-        
-        let resultHtml = '';
-        
-        // Sadece öğrencinin okul numarasını göster
-        if (!documentAnalysisResults) {
-            resultHtml += `
-                <div class="document-analysis-results">
-                    <div class="result-item">
-                        <h3>${getTranslation('studentInformation')}</h3>
-                        <p>${getTranslation('studentNumber')}: <span class="score">${schoolNumber}</span></p>
-                    </div>
-                </div>
-            `;
+        faceAnalysisCount += 1;
+
+        // Yüz analizi sonucu orta kolona yazılsın
+        let interpretation = data.interpretation;
+        if (interpretation && interpretation.toLowerCase().includes("same person")) {
+            interpretation = getTranslation('samePerson'); // Now uses translation
+        } else if (interpretation === "Similar features present") {
+            interpretation = getTranslation('similarFeatures');
+        } else if (interpretation === "Different persons") {
+            interpretation = getTranslation('differentPersons');
         }
 
-        // Öğrenci fotoğrafını göster
-        resultHtml += `
-            <div class="result-item">
-                <div class="student-image">
-                    <img src="/get_student_image/${schoolNumber}" alt="Student Image" 
-                         style="width: 100px; height: 120px; object-fit: cover;">
-                </div>
-            </div>
-        `;
-        
-        // Yüz analizi sonuçlarını ekle
-        if (data.error) {
-            resultHtml += `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    ${data.error}
-                </div>
-            `;
-        } else {
-            // Check if data.interpretation matches the English text and replace with translation if needed
-            let interpretation = data.interpretation;
-            if (interpretation === "Most likely the same person") {
-                interpretation = getTranslation('mostLikelySamePerson');
-            } else if (interpretation === "Similar features present") {
-                interpretation = getTranslation('similarFeatures');
-            } else if (interpretation === "Different persons") {
-                interpretation = getTranslation('differentPersons');
-            }
-            
-            resultHtml += `
-                <div class="result-item">
-                    <h3>${getTranslation('faceAnalysisResults')}</h3>
-                    <p>${getTranslation('similarityScore')}: <span class="score">${data.similarity_score.toFixed(1)}%</span></p>
-                    <p>${getTranslation('result')}: <span class="score">${interpretation}</span></p>
-                </div>
-            `;
-        }
-        
-        // Belge analizi sonuçları varsa ekle
-        if (documentAnalysisResults) {
-            resultHtml += `
-                <div class="result-item">
-                    <h3>${getTranslation('documentInformation')}</h3>
-                    ${documentAnalysisResults.name_surname ? `<p>${getTranslation('nameSurname')}: <span class="score">${documentAnalysisResults.name_surname}</span></p>` : ''}
-                    ${documentAnalysisResults.department ? `<p>${getTranslation('department')}: <span class="score">${documentAnalysisResults.department}</span></p>` : ''}
-                    ${documentAnalysisResults.class ? `<p>${getTranslation('class')}: <span class="score">${documentAnalysisResults.class}</span></p>` : ''}
-                </div>
-            `;
-        }
+        showStudentInfo({
+            number: schoolNumber,
+            image: `/get_student_image/${schoolNumber}`,
+            similarityScore: data.similarity_score ? `${data.similarity_score.toFixed(1)}%` : '',
+            similarityResult: interpretation,
+            similarityResultColor: "#16a34a"
+        });
 
-        similarityResults.innerHTML = resultHtml;
+        // similarityResults'u temizle
+        similarityResults.innerHTML = '';
         resetButton.style.display = 'inline-flex';
         
         // Update confirm/reject buttons state
         updateButtonState();
         
+        // Onayla/reddet aktif, Excel'e aktar aktif
+        confirmButton.disabled = false;
+        rejectButton.disabled = false;
+        const exportBtn = document.getElementById('exportExcelBtn');
+        if (exportBtn) exportBtn.disabled = false;
+        
     } catch (error) {
+        showStudentInfo({});
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
@@ -490,13 +505,20 @@ async function analyzeDocument() {
 async function searchStudentByNumber(studentNumber) {
     if (!studentNumber) return;
 
-    // Loading göster
-    similarityResults.innerHTML = `
-        <div class="loading-container">
-            <div class="loader"></div>
-            <span>${getTranslation('searching')}</span>
-        </div>
-    `;
+    // Orta kolonda loading göster
+    showStudentInfo({
+        number: '',
+        image: '',
+        name: '',
+        surname: '',
+        similarityScore: '',
+        similarityResult: '',
+        showLoading: true // Açıkça loading göster
+    });
+    const imgContainer = document.getElementById('studentImageContainer');
+    if (imgContainer) {
+        imgContainer.innerHTML = `<div class="loading-container"><div class="loader"></div><span>${getTranslation('searching')}</span></div>`;
+    }
 
     try {
         const response = await fetch('/find_student', {
@@ -510,6 +532,8 @@ async function searchStudentByNumber(studentNumber) {
         const data = await response.json();
 
         if (data.error) {
+            // Hata varsa orta kolonu temizle ve similarityResults'a hata yaz
+            showStudentInfo({});
             similarityResults.innerHTML = `
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
@@ -519,26 +543,27 @@ async function searchStudentByNumber(studentNumber) {
             return;
         }
 
-        let resultHtml = `
-            <div class="document-analysis-results">
-                <div class="result-item">
-                    <h3>${getTranslation('studentInformation')}</h3>
-                    <p>${getTranslation('studentNumber')}: <span class="score">${studentNumber}</span></p>
-                </div>
-                <div class="result-item">
-                    <div class="student-image">
-                        <img src="/get_student_image/${studentNumber}" alt="Student Image" 
-                             style="width: 100px; height: 120px; object-fit: cover;">
-                    </div>
-                </div>
-            </div>
-        `;
+        // Orta kolona bilgileri yaz
+        const studentData = data.student_data || {};
+        showStudentInfo({
+            number: studentNumber,
+            name: studentData.name || '',
+            surname: studentData.surname || '',
+            image: `/get_student_image/${studentNumber}`,
+            similarityScore: '', // Yüz analizi yapılmadıysa boş bırak
+            similarityResult: ''
+        });
 
-        similarityResults.innerHTML = resultHtml;
+        // similarityResults'u temizle, "Henüz analiz yapılmadı" yazısı gösterme
+        similarityResults.innerHTML = '';
         resetButton.disabled = false;
         resetButton.style.display = 'inline-flex';
+        
+        // Enable course selection and camera button
+        enableCourseAndCamera();
 
     } catch (error) {
+        showStudentInfo({});
         similarityResults.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
@@ -809,13 +834,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Helper function to handle the actual export process
     function proceedWithExport(selectedExams) {
-        // Show loading in the results section
-        similarityResults.innerHTML = `
-            <div class="loading-container">
-                <div class="loader"></div>
-                <span>${getTranslation('generatingExcel')}</span>
-            </div>
-        `;
+        // Clear previous content but don't show loading
+        similarityResults.innerHTML = '';
         
         // Send request to export the selected exams
         fetch('/export-to-excel', {
@@ -848,14 +868,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            // Auto-hide Excel download success message after 3 seconds
+            // Auto-hide Excel download success message after 5 seconds
             setTimeout(() => {
-                similarityResults.innerHTML = `
-                    <div class="result-item">
-                        <p>${getTranslation('noAnalysis')}</p>
-                    </div>
-                `;
-            }, 3000);
+                similarityResults.innerHTML = '';
+            }, 5000);
         })
         .catch(error => {
             similarityResults.innerHTML = `
@@ -944,6 +960,10 @@ function confirmAttendance() {
 
     // Save student data to JSON file
     saveStudentData(studentInfo);
+
+    // Artık analiz sonuçlarını sıfırlama
+    // showStudentInfo({ resetResult: true }); - Kaldırıldı
+    // similarityResults.innerHTML = ''; - Kaldırıldı
 }
 
 // Function to handle reject button click
@@ -953,9 +973,39 @@ function rejectAttendance() {
         return;
     }
     
-    // Reset the form without saving
-    resetAnalysis();
-    showMessage(getTranslation('attendanceRejected'));
+    // Get selected courses
+    const selectedCourses = Array.from(document.querySelectorAll('.exam-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    if (selectedCourses.length === 0) {
+        showMessage(getTranslation('selectCourse'));
+        return;
+    }
+
+    // Prepare student data for saving
+    const studentInfo = {
+        schoolNumber: schoolNumber,
+        courses: selectedCourses,
+        timestamp: new Date().toISOString(),
+        attendance: false // Mark attendance as false for rejection
+    };
+
+    // Add document data if available
+    if (documentAnalysisResults) {
+        studentInfo.documentInfo = {
+            nameSurname: documentAnalysisResults.name_surname || '',
+            department: documentAnalysisResults.department || '',
+            class: documentAnalysisResults.class || ''
+        };
+    }
+
+    // Add face analysis data if available
+    if (faceAnalysisResults) {
+        studentInfo.faceAnalysis = faceAnalysisResults;
+    }
+
+    // Save student data to JSON file
+    saveStudentData(studentInfo);
 }
 
 // Function to clear all exam checkboxes
@@ -1080,5 +1130,141 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // ...existing code...
+});
+
+function showStudentInfo(data) {
+    document.getElementById('studentNumber').textContent = data.number || '';
+    document.getElementById('studentName').textContent = data.name || '';
+    document.getElementById('studentSurname').textContent = data.surname || '';
+    const imgContainer = document.getElementById('studentImageContainer');
+    // Placeholder her zaman HTML'de var, sadece öğrenci fotoğrafını ekle/çıkar
+    // Önce eski öğrenci fotoğrafını ve loading mesajını kaldır
+    const oldImg = imgContainer.querySelector('img.student-photo');
+    if (oldImg) oldImg.remove();
+    const oldLoader = imgContainer.querySelector('.loading-container');
+    if (oldLoader) oldLoader.remove();
+
+    // Eğer data.image varsa fotoğrafı ekle
+    if (data.image) {
+        const img = document.createElement('img');
+        img.src = data.image;
+        img.alt = "Student Image";
+        img.className = "student-photo";
+        img.style.position = "absolute";
+        img.style.top = "0";
+        img.style.left = "0";
+        img.style.width = "120px";
+        img.style.height = "150px";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "10px";
+        img.style.border = "2px solid #c7d2fe";
+        img.style.zIndex = "2";
+        imgContainer.style.position = "relative";
+        imgContainer.appendChild(img);
+    }
+    // Eğer data.image yok ve data.resetResult true ise hiçbir şey yazma (loading ekleme)
+    // Bu sayede analiz sıfırlanınca "Öğrenci aranıyor..." yazısı gelmez
+    else if (data && data.resetResult) {
+        // Hiçbir şey ekleme, sadece placeholder kalsın
+    }
+    // Bu normal durumda yani searchStudentByNumber çağrıldığında loading gösterme ihtiyacı
+    // varsa aşağıdaki kodu çalıştıracak
+    else if (!data.resetResult && !data.image && data.showLoading !== false) {
+        imgContainer.innerHTML = `<div class="loading-container"><div class="loader"></div><span>${getTranslation('searching')}</span></div>`;
+    }
+    
+    document.getElementById('similarityScore').textContent = data.similarityScore || '';
+    document.getElementById('similarityResult').textContent = data.similarityResult || '';
+    if (data.similarityResult && data.similarityResultColor) {
+        document.getElementById('similarityResult').style.color = data.similarityResultColor;
+    } else {
+        document.getElementById('similarityResult').style.color = '';
+    }
+}
+
+// Modal açma/kapatma
+document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+
+    // Modal açma/kapatma
+    const examModal = document.getElementById('examModal');
+    const openExamModalBtn = document.getElementById('openExamModalBtn');
+    const closeExamModalBtn = document.getElementById('closeExamModalBtn');
+    const closeExamModalBtn2 = document.getElementById('closeExamModalBtn2');
+    if (openExamModalBtn && examModal) {
+        openExamModalBtn.addEventListener('click', function() {
+            examModal.classList.add('active');
+        });
+    }
+    if (closeExamModalBtn && examModal) {
+        closeExamModalBtn.addEventListener('click', function() {
+            examModal.classList.remove('active');
+            // Çarpı ile kapatınca seçimleri geri al
+            clearExamSelections();
+            onCourseSelectionChanged();
+        });
+    }
+    if (closeExamModalBtn2 && examModal) {
+        closeExamModalBtn2.addEventListener('click', function() {
+            examModal.classList.remove('active');
+            // Tamam butonuna tıklanınca seçimler korunur, hiçbir şey yapılmaz
+            onCourseSelectionChanged();
+        });
+    }
+    // Modal dışında tıklayınca kapansın
+    if (examModal) {
+        examModal.addEventListener('click', function(e) {
+            if (e.target === examModal) {
+                examModal.classList.remove('active');
+                // Dışarı tıklayınca da seçimleri geri al
+                clearExamSelections();
+                onCourseSelectionChanged();
+            }
+        });
+    }
+
+    // Ders seçim checkboxlarına event ekle
+    const examCheckboxes = document.querySelectorAll('.exam-checkbox');
+    examCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', onCourseSelectionChanged);
+    });
+
+    // ...existing code...
+});
+
+// Ders seçim checkboxlarına event ekle
+document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+    const examCheckboxes = document.querySelectorAll('.exam-checkbox');
+    examCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', onCourseSelectionChanged);
+    });
+
+    // Tümünü seç (Select All) ve Temizle (Clear) butonları için de kamera başlat tuşunu kontrol et
+    const selectAllExams = document.getElementById('selectAllExams');
+    const clearAllExams = document.getElementById('clearAllExams');
+    if (selectAllExams) {
+        selectAllExams.addEventListener('click', function() {
+            // ...existing code...
+            onCourseSelectionChanged();
+        });
+    }
+    if (clearAllExams) {
+        clearAllExams.addEventListener('click', function() {
+            // ...existing code...
+            onCourseSelectionChanged();
+        });
+    }
+
+    // Her bir dersin "Tümü" (select-all-course) checkbox'ı için de kamera başlat tuşunu kontrol et
+    const selectAllCourse = document.querySelectorAll('.select-all-course');
+    selectAllCourse.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // ...existing code...
+            onCourseSelectionChanged();
+        });
+    });
+
     // ...existing code...
 });
